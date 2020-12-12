@@ -1,0 +1,20 @@
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v2.4.0
+    hooks:
+      - id: trailing-whitespace
+        exclude: ^examples
+      - id: check-yaml
+      - id: check-json
+      - id: pretty-format-json
+        args: ['--autofix']
+      - id: flake8
+        additional_dependencies: [pandas-vet==0.2.2, flake8-bugbear==20.1.4]
+        args: ['--ignore=E501,B011,PD005'] # ignore line too long and assert (as we dont use python -O)
+
+  - repo: https://github.com/asottile/reorder_python_imports
+    rev: v2.3.0
+    hooks:
+      - id: reorder-python-imports
+
+

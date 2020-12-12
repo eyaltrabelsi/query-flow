@@ -1,0 +1,8 @@
+,source,target,operation_type,actual_rows,actual_total_time,plan_rows,plan_width,total_cost,actual_startup_time,actual_loops,shared_read_blocks,shared_hit_blocks,shared_dirtied_blocks,shared_written_blocks,local_hit_blocks,local_dirtied_blocks,local_read_blocks,local_written_blocks,temp_written_blocks,temp_read_blocks,label,label_metadata
+0,9999,10000,Nested Loop,0,618.702,1,10,935487.12,618.702,1,122286,1207,0,0,0,0,0,0,0,0,JOIN,"Join Filter ('Inner', '(crew.title_id = titles.title_id)')"
+1,9998,9999,Where,0,614.656,512,10,160664.09,614.656,3,122286,1207,0,0,0,0,0,0,0,0,Titles*,Filter condition: (titles.genres = 'comedy'::text)
+2,9997,9998,Seq Scan,2379234,614.656,512,10,160664.09,614.656,3,122286,1207,0,0,0,0,0,0,0,0,Titles,
+3,9996,9999,Hash Join,1695,0.0,21,10,771754.71,0.0,0,0,0,0,0,0,0,0,0,0,0,JOIN,"Hash Cond ('Inner', '(crew.person_id = people.person_id)')"
+4,9995,9996,Seq Scan,40955703,0.0,17064255,20,566502.55,0.0,0,0,0,0,0,0,0,0,0,0,0,Crew,
+5,9994,9996,Where,9,0.0,5,10,141261.06,0.0,0,0,0,0,0,0,0,0,0,0,0,People*,"Filter condition: (people.name = ANY ('{""Owen Wilson"",""Adam Sandler"",""Jason Segel""}'::text[]))"
+6,9993,9994,Seq Scan,10338782,0.0,5,10,141261.06,0.0,0,0,0,0,0,0,0,0,0,0,0,People,

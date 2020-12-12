@@ -1,0 +1,336 @@
+from functools import wraps
+from operator import itemgetter
+
+import numpy as np
+import pandas as pd
+
+from .db_parser import DBParser
+
+
+class PostgresParser(DBParser):
+    explain_prefix = "EXPLAIN(ANALYZE, COSTS, VERBOSE, BUFFERS, FORMAT JSON)"
+    node_type_indicator = "Node Type"
+    next_operator_indicator = "Plans"
+    first_operator_indicator = "Plan"
+
+    supported_metrics = ["Actual Rows", "Actual Total Time", "Plan Rows", "Plan Width", "Total Cost",
+                         "Actual Startup Time", "Actual Loops", "Shared Read Blocks",
+                         "Shared Hit Blocks", "Shared Dirtied Blocks", "Shared Written Blocks",
+                         "Local Hit Blocks", "Local Dirtied Blocks", "Local Read Blocks",
+                         "Local Written Blocks", "Temp Written Blocks", "Temp Read Blocks"]
+
+    def __init__(self, is_verbose=False, explain_prefix=None):
+        if explain_prefix:
+            self.explain_prefix = explain_prefix
+
+        super().__init__(is_verbose)
+
+        self.strategy_dict = {
+            "Limit": self.parse_limit,
+            "Seq Scan": self.parse_scan,
+            "Subquery Scan": self.parse_subquery,
+            "Bitmap Heap Scan": self.parse_scan,
+            "Bitmap Index Scan": self.parse_scan,
+            "Index Scan": self.parse_scan,
+            "Index Only Scan": self.parse_scan,
+            "Append": self.parse_append,
+            "Hash Join": self.parse_join,
+            "Merge Join": self.parse_join,
+            "Nested Loop": self.parse_join,
+            "Aggregate": self.parse_aggregate,
+            "Hashaggregate": self.parse_aggregate,
+            "Hash": self.parse_hash,
+            "Gather": self.parse_gather,
+            "Gather Merge": self.parse_gather,
+            "Sort": self.parse_sort,
+            "Unique": self.parse_unique,
+            "Result": self.parse_result,
+            "WindowAgg": self.parse_window,
+
+
+
+        }
+
+        self.verbose_ops = {"Hash", "Gather", "Gather Merge", "Sort", "WindowAgg"}
+        self.description_dict = {
+            "Append": "Used in a UNION to merge multiple record sets by appending them together.",
+            "Limit": "Returns a specified number of rows from a record set.",
+            "Hash Join": "Joins to record sets by hashing one of them (using a Hash Scan).",
+            "Aggregate": "Groups records together based on a GROUP BY or aggregate function (e.g. sum()).",
+            "Hashaggregate": "Groups records together based on a GROUP BY or aggregate function (e.g. sum()). Hash Aggregate uses a hash to first organize the records by a key.",
+            "Seq Scan": "Finds relevant records by sequentially scanning the input record set. When reading from a table, Seq Scans (unlike Index Scans) perform a single read operation (only the table is read).",
+            "Where": "Filter relation to hold only relevant records.",
+            "Having": "Filter relation to hold only relevant records.",
+            "Sort": "Sorts a record set based on the specified sort key.",
+            "Nested Loop": "Merges two record sets by looping through every record in the first set and trying to find a match in the second set. All matching records are returned.",
+            "Merge Join": "Merges two record sets by first sorting them on a join key.",
+            "Hash": "Generates a hash table from the records in the input recordset. Hash is used by Hash Join.",
+            "Index Scan": "Finds relevant records based on an Index. Index Scans perform 2 read operations: one to read the index and another to read the actual value from the table.",
+            "Bitmap Heap Scan": "Searches through the pages returned by the Bitmap Index Scan for relevant rows.",
+            "Bitmap Index Scan": "Uses a Bitmap Index (index which uses 1 bit per page) to find all relevant pages. Results of this node are fed to the Bitmap Heap Scan.",
+            "Index Only Scan": "Finds relevant records based on an Index. Index Only Scans perform a single read operation from the index and do not read from the corresponding table.",
+            "Gather": "Collect relevant records from the workers.",
+            "Gather Merge": "Collect relevant records from the workers in ordered manner.",
+            "Unique": "Remove duplicated rows from a record set.",
+            "WindowAgg": "Calculate window function according to the OVER statements.",
+            "Result": "A Relation primitive",
+        }
+
+    def parse_default_decor(func):
+        @wraps(func)
+        def parse(self, target_id, execution_node):
+            defaults_attrs, source_id = self.parse_default(target_id, execution_node)
+            specific_attrs = func(self, execution_node)
+            return [{**defaults_attrs, **specific_attrs}], source_id
+
+        return parse
+
+    def parse_filterable_node_decor(func):
+        @wraps(func)
+        def parse(self, target_id, execution_node):
+            filter_func, clause_func = func(self)
+            defaults_attrs, source_id = self.parse_default(target_id, execution_node)
+            if "Filter" in execution_node:
+                filter_node = {
+                    **defaults_attrs,
+                    **filter_func(execution_node)
+                }
+                target_id = source_id
+                defaults_attrs, source_id = self.parse_default(target_id, execution_node)
+
+            non_filter_node = {
+                **defaults_attrs,
+                **clause_func(execution_node)
+            }
+            parsed_node = [filter_node, non_filter_node] if "Filter" in execution_node else [non_filter_node]
+
+            return parsed_node, source_id
+
+        return parse
+
+    @staticmethod
+    def align_source_target_ids(df, sort=False):
+        min_ = min(set(df["source"]).union(set(df["target"])))
+        df = df.assign(target=lambda x: x.target.map(np.int64).map(lambda y: y - min_),
+                       source=lambda x: x.source.map(np.int64).map(lambda y: y - min_))
+        if sort:
+            df = df.sort_values(by="source")
+        return df
+
+    def parse(self, execution_plan):
+        # Parsing
+        self.cardinality_df = pd.DataFrame({})
+        self.parse_node(execution_plan, target_id=self.max_id)
+        self.cardinality_df = PostgresParser.align_source_target_ids(self.cardinality_df, sort=True)
+
+        # Enriching
+        self.cardinality_df = self.enrich_stats(self.cardinality_df)
+        return self.cardinality_df
+
+    def parse_default(self, target_id, execution_node):
+        source_id = self.get_next_id()
+        parsed_node = {"source": source_id, "target": target_id, "operation_type": execution_node["Node Type"]}
+
+        for metric in self.supported_metrics:
+            if metric in execution_node:
+                normalized_key = metric.replace(" ", "_").lower()
+                parsed_node[normalized_key] = execution_node[metric]
+
+        return parsed_node, source_id
+
+    @parse_default_decor
+    def parse_limit(self, execution_node):
+        """
+        >>> p.parse_limit(9993, {"Node Type": "Limit", "Actual Rows": 5})
+        ([{'source': 9992, 'target': 9993, 'operation_type': 'Limit', 'label': 'LIMIT 5', 'label_metadata': 'LIMIT: 5'}], 9992)
+        """
+        return {
+            "label": f"LIMIT {execution_node['Actual Rows']}",
+            "label_metadata": f"LIMIT: {execution_node['Actual Rows']}",
+        }
+
+    @parse_default_decor
+    def parse_sort(self, execution_node):
+        """
+        >>> p.parse_sort(9989, {"Node Type": "Sort", "Sort Key": ["crew.title_id"], "Sort Method": "quicksort", "Sort Space Used": 128, "Sort Space Type": "Memory"})
+        ([{'source': 9988, 'target': 9989, 'operation_type': 'Sort', 'label': 'SORT', 'label_metadata': "Sort Space Type: Memory\\nSort Space Used: 128\\nSort Method: quicksort\\nSort Key: ['crew.title_id']\\n"}], 9988)
+        """
+
+        return {
+            "label": "SORT",
+            "label_metadata": f"Sort Space Type: {execution_node['Sort Space Type']}\n"
+                              f"Sort Space Used: {execution_node['Sort Space Used']}\n"
+                              f"Sort Method: {execution_node['Sort Method']}\n"
+                              f"Sort Key: {itemgetter('Sort Key')(execution_node)}\n"
+        }
+
+    @parse_default_decor
+    def parse_append(self, execution_node):
+        """
+        >>> p.parse_append(9998, {"Node Type": "Append"})
+        ([{'source': 9997, 'target': 9998, 'operation_type': 'Append', 'label': 'UNION ALL', 'label_metadata': ''}], 9997)
+        """
+        return {
+            "label": "UNION ALL",
+            "label_metadata": "",
+        }
+
+    @parse_default_decor
+    def parse_window(self, execution_node):
+        """
+        >>> p.parse_window(9985, {"Node Type": "WindowAgg"})
+        ([{'source': 9984, 'target': 9985, 'operation_type': 'WindowAgg', 'label': 'WINDOW', 'label_metadata': ''}], 9984)
+        """
+        return {
+            "label": "WINDOW",
+            "label_metadata": "",
+        }
+
+    @parse_default_decor
+    def parse_unique(self, execution_node):
+        """
+        >>> p.parse_unique(9986, {"Node Type": "Unique"})
+        ([{'source': 9985, 'target': 9986, 'operation_type': 'Unique', 'label': 'Unique', 'label_metadata': ''}], 9985)
+        """
+        return {
+            "label": "Unique",
+            "label_metadata": "",
+        }
+
+    @parse_default_decor
+    def parse_result(self, execution_node):
+        """
+        >>> p.parse_result(9992, {"Node Type": "Result"})
+        ([{'source': 9991, 'target': 9992, 'operation_type': 'Result', 'label': 'Result', 'label_metadata': ''}], 9991)
+        """
+        return {
+            "label": "Result",
+            "label_metadata": "",
+        }
+
+    @parse_default_decor
+    def parse_gather(self, execution_node):
+        """
+        >>> p.parse_gather(9997, {"Node Type": "Gather"})
+        ([{'source': 9996, 'target': 9997, 'operation_type': 'Gather', 'label': 'Gather', 'label_metadata': ''}], 9996)
+        """
+        return {
+            "label": "Gather",
+            "label_metadata": "",
+        }
+
+    @parse_default_decor
+    def parse_hash(self, execution_node):
+        """
+        >>> p.parse_hash(9996, {"Node Type": "Hash", "Parent Relationship": "Inner"})
+        ([{'source': 9995, 'target': 9996, 'operation_type': 'Hash', 'label': 'HASH', 'label_metadata': ''}], 9995)
+        """
+        return {
+            "label": "HASH",
+            "label_metadata": "",
+        }
+
+    @parse_default_decor
+    def parse_join(self, execution_node):
+        """
+        >>> p.parse_join(9995, {"Node Type": "Nested Loop",  "Join Type": "Inner", "Join Filter": "(crew.title_id = titles.title_id)"})
+        ([{'source': 9994, 'target': 9995, 'operation_type': 'Nested Loop', 'label': 'JOIN', 'label_metadata': "Join Filter ('Inner', '(crew.title_id = titles.title_id)')"}], 9994)
+
+        >>> p.parse_join(9994, {"Node Type": "Hash Join",  "Join Type": "Inner", "Join Filter": "(crew.person_id = people.person_id)"})
+        ([{'source': 9993, 'target': 9994, 'operation_type': 'Hash Join', 'label': 'JOIN', 'label_metadata': "Join Filter ('Inner', '(crew.person_id = people.person_id)')"}], 9993)
+        """
+        cond_key = [key for key in execution_node.keys() if "Cond" in key or "Join Filter" == key]
+        metadata = f"{cond_key[0]} {itemgetter('Join Type', cond_key[0])(execution_node)}" if cond_key else ""
+        return {
+            "label": "JOIN",
+            "label_metadata": metadata,
+        }
+
+    @parse_filterable_node_decor
+    def parse_scan(self):
+        """
+        >>> p.parse_scan(9991, {"Node Type": "Seq Scan", "Relation Name": "people", "Actual Rows": 3, "Filter": "people.age = 30", "Rows Removed by Filter": 3446258})
+        ([{'source': 9990, 'target': 9991, 'operation_type': 'Where', 'label': 'People*', 'label_metadata': 'Filter condition: people.age = 30'}, {'source': 9989, 'target': 9990, 'operation_type': 'Seq Scan', 'label': 'People', 'label_metadata': '', 'actual_rows': 3446261}], 9989)
+        """
+        def parse_where(execution_node):
+            return {"label": f'{execution_node["Relation Name"].title()}*',
+                    "label_metadata": f"Filter condition: {itemgetter('Filter')(execution_node)}",
+                    "operation_type": "Where"}
+
+        def parse_naive_scan(execution_node):
+            return {"label": execution_node.get("Index Name", execution_node.get("Relation Name", "")).title(),
+                    "label_metadata": "",
+                    "actual_rows": execution_node["Actual Rows"] + execution_node.get("Rows Removed by Filter", 0)}
+
+        yield parse_where
+        yield parse_naive_scan
+
+    @parse_filterable_node_decor
+    def parse_subquery(self):
+        """
+        >>> p.parse_subquery(9996, {"Node Type": "Subquery Scan", "Actual Rows": 3, "Filter": "people.age = 30", "Rows Removed by Filter": 3446258, "Alias": "a"})
+        ([{'source': 9987, 'target': 9996, 'operation_type': 'Where', 'label': 'a*', 'label_metadata': 'Filter condition: people.age = 30'}, {'source': 9986, 'target': 9987, 'operation_type': 'Subquery Scan', 'label': 'a', 'label_metadata': '', 'actual_rows': 3446261}], 9986)
+        """
+        def parse_naive_sub_query(execution_node):
+            return {"label": execution_node["Alias"],
+                    "label_metadata": "",
+                    "actual_rows": execution_node["Actual Rows"] + execution_node.get("Rows Removed by Filter", 0)}
+
+        def parse_where_sub_query(execution_node):
+            return {"label": f'{execution_node["Alias"]}*',
+                    "label_metadata": f"Filter condition: {itemgetter('Filter')(execution_node)}",
+                    "operation_type": "Where"}
+
+        yield parse_where_sub_query
+        yield parse_naive_sub_query
+
+    @parse_filterable_node_decor
+    def parse_aggregate(self):
+        """
+        >>> p.parse_aggregate(9996, {"Node Type": "Hashaggregate", "Actual Rows": 3, "Filter": "(count(1) > 5)", "Rows Removed by Filter": 34,  "Group Key": ["titles.genres"], "Output": ["titles.genres"]})
+        ([{'source': 9999, 'target': 9996, 'operation_type': 'Having', 'label': 'AGG*', 'label_metadata': 'Filter condition: (count(1) > 5)'}, {'source': 9998, 'target': 9999, 'operation_type': 'Hashaggregate', 'label': 'AGG', 'label_metadata': "Group key: ['titles.genres']\\nOutput: ['titles.genres']", 'actual_rows': 37}], 9998)
+        """
+
+        def parse_having(execution_node):
+            return {"label": "AGG*",
+                    "label_metadata": f"Filter condition: {itemgetter('Filter')(execution_node)}",
+                    "operation_type": "Having"}
+
+        def parse_naive_aggregate(execution_node):
+            return {"label": "AGG",
+                    "label_metadata": f"Group key: {itemgetter('Group Key')(execution_node)}\n"
+                                      f"Output: {itemgetter('Output')(execution_node)}",
+                    "actual_rows": execution_node["Actual Rows"] + execution_node.get("Rows Removed by Filter", 0)}
+
+        yield parse_having
+        yield parse_naive_aggregate
+
+    def enrich_stats(self, df):
+        df['actual_duration'] = df['actual_total_time']
+        df['estimated_cost'] = df['total_cost']
+        df['actual_startup_duration'] = df['actual_startup_time']
+        df['redundent_operation'] = False
+
+        for i, row in df.iterrows():
+
+            relevant_ops = df.query(f"target=={row['source']}")
+            df.at[i, 'actual_duration'] = row.actual_total_time if relevant_ops.empty else row.actual_total_time - max(relevant_ops.actual_total_time)
+            df.at[i, 'estimated_cost'] = row.total_cost if relevant_ops.empty else row.total_cost - max(relevant_ops.total_cost)
+            df.at[i, 'actual_startup_duration'] = row.actual_startup_time if relevant_ops.empty else row.actual_startup_time - max(relevant_ops.total_cost)
+
+            if any(op in row.label.split(" ") for op in self.label_replacement.keys()):
+                df.at[i, 'label'] = self.label_replacement[row.label].join(relevant_ops.label)
+            if row.label == "Unique":
+                df.at[i, 'redundent_operation'] = (sum(relevant_ops.actual_rows) == row.actual_rows)
+        #         TODO  max fix
+        df['actual_duration_pct'] = df['actual_duration'] / df['actual_total_time'] * 100
+        df['estimated_cost_pct'] = df['estimated_cost'] / df['total_cost'] * 100
+        # TODO when is there zero
+        df['actual_plan_rows_ratio'] = df[["actual_rows", "plan_rows"]].apply(lambda x: max([x.actual_rows, x.plan_rows]) / min([x.actual_rows, x.plan_rows]) > 5, axis=1)
+        # df["label_metadata"] = df.operation_type.map(lambda s: f"\nDescription: {self.description_dict.get(s,'')}"if s else "") + df.label_metadata
+        return df
+
+
+if __name__ == "__main__":
+    import doctest
+    doctest.testmod(extraglobs={'p': PostgresParser(True)})

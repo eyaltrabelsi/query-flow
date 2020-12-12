@@ -1,0 +1,27 @@
+Support Evaluation Proposition
+- Install TPC-H
+- Fix the mocks themself
+- Fix mock issues
+
+QueryFlow Parsing
+- Support more operations LIKE exists  BitmapOr Bitmap And  CTEScan
+- Index should be extracted without nulls rows
+-  Support multiple queries. I need that the source of query will be dependent on the operation itself
+   and since the same operation can take diffrent amount of time I will give the ability to either avg/median/max/min
+
+QueryFlow UI
+- UI Bug due to .replace(0, 1)
+
+Documentation
+- Reademe
+- Support for pypi
+- Creating new parser
+
+Resilience
+- Regression tests
+- CI with github action
+
+Refactor
+- refactor configuration code
+- Installation of tables cleanup'postgresql:///etrabelsi_thesis'
+

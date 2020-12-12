@@ -1,0 +1,6 @@
+,source,target,operation_type,actual_rows,actual_total_time,plan_rows,plan_width,total_cost,actual_startup_time,actual_loops,shared_read_blocks,shared_hit_blocks,shared_dirtied_blocks,shared_written_blocks,local_hit_blocks,local_dirtied_blocks,local_read_blocks,local_written_blocks,temp_written_blocks,temp_read_blocks,label,label_metadata
+1,9986,9987,Append,181653,1303.681,535501,32,329360.7,0.089,3,244956,2030,0,0,0,0,0,0,0,0,UNION ALL,
+2,9985,9986,Where,171294,650.166,210140,10,160664.09,0.021,3,122412,1081,0,0,0,0,0,0,0,0,Titles*,Filter condition: (titles.genres = 'Comedy'::text)
+3,9984,9985,Seq Scan,2379234,650.166,210140,10,160664.09,0.021,3,122412,1081,0,0,0,0,0,0,0,0,Titles,
+4,9983,9986,Where,15538,922.912,12985,10,160664.09,0.119,2,122544,949,0,0,0,0,0,0,0,0,Titles*,Filter condition: (titles_1.genres = 'Action'::text)
+5,9982,9983,Seq Scan,3568850,922.912,12985,10,160664.09,0.119,2,122544,949,0,0,0,0,0,0,0,0,Titles,

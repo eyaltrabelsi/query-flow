@@ -1,0 +1,11 @@
+.idea/
+query_flow/datagen/tpch_assets/
+build/
+dist/
+*.html
+*.ipynb_checkpoints/
+*.DS_Store
+*/__pycache__/*
+*/*.db
+*.xml
+*.egg-info
