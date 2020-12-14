@@ -1,12 +1,13 @@
 .idea/
+.pytest_cache
+.tox
 query_flow/datagen/tpch_assets/
 build/
 dist/
 *.html
 *.ipynb_checkpoints/
+*/__pycache__
 *.DS_Store
-*/__pycache__/*
-*/*.db
+*.db
 *.xml
 *.egg-info
-.tox

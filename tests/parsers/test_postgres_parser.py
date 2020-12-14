@@ -1,14 +1,16 @@
-import pandas as pd
+import json
+import os
 
+import pandas as pd
+import pytest
 from query_flow.parsers.postgres_parser import PostgresParser
 
 
-def test_parse():
-
+@pytest.mark.parametrize('use_case', os.listdir("data/"))
+def test_parse(use_case):
     p = PostgresParser()
-    for f in ["proposal/data/fixed_identifying_duplications_query_flow_representation.csv","proposal/data/fixed_ineffective_operation_query_flow_representation.csv","proposal/data/ineffective_operation_query_flow_representation.csv", "proposal/data/missing_records_query_flow_representation.csv"]:
-        df = pd.read_csv(f"/Users/etrabelsi/IdeaProjects/thesis/{f}")
-
-    pass
-
+    query = json.load(open(f"data/{use_case}/execution_plan.json", "r").read())
+    actual_cardinality_df = p.parse(query)
+    exepected_cardinality_df = pd.read_csv(f"data/{use_case}/cardinality.csv")
+    assert actual_cardinality_df == exepected_cardinality_df
 
