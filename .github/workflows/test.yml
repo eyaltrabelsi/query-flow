@@ -1,0 +1,33 @@
+name: Unit Tests
+
+on: [push, pull_request]
+
+jobs:
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v2
+    - name: Set up Python 3.8
+      uses: actions/setup-python@v2
+      with:
+        python-version: 3.8
+    - name: Install Dependencies
+      run: pip install -e '.[development]'
+    - name: Run Pytest
+      run: tox
+
+  linter:
+      name: Precommit Validations
+      runs-on: ubuntu-latest
+
+      steps:
+      - name: Checkout Code
+        uses: actions/checkout@v2
+      - name: Install Dependencies
+        run: pip install -e '.[development]'
+#        TODO
+#      - name: Validate indentation is 2 lines
+#        run: if [[ $(pylint --jobs=0 --indent-string='  ' * | grep "Bad indentation") ]]; then exit 1; fi

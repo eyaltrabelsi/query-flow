@@ -9,3 +9,4 @@ dist/
 */*.db
 *.xml
 *.egg-info
+.tox
