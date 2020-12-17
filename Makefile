@@ -30,7 +30,7 @@ docs: ## generate Sphinx HTML documentation, including API docs
 	$(BROWSER) docs/_build/html/index.html
 
 install_mock_imdb:
-	python datagen/create_imdb.py
+	python query_flow/datagen/create_imdb.py
 
 install_mock_tpch:
-	python datagen/create_tpch.py
+	python query_flow/datagen/create_tpch.py
