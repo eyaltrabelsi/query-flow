@@ -1,39 +1,63 @@
+import json
+from pathlib import Path
+
 from abc import ABC, abstractmethod
 
 import numpy as np
 import pandas as pd
 from plotly.offline import plot, iplot
 
-from .config_parser import ConfigParser
-
 __all__ = ["DataFrameSankeyVizualizer"]
 
 
 class DataFrameSankeyVizualizer(ABC):
-    supported_metrics = None
-    default_metrics = None
     link_defaults = None
     node_defaults = None
-    columns_pks = None
 
     def __init__(self, config_path='example_config.json'):
-        self.config = ConfigParser(self.default_colors, config_path)
+        self.config = self._parse_config(config_path)
 
-    def prepare_dfs_for_sankey(self, df, metrics):
-        df = df if isinstance(df, pd.DataFrame) else pd.concat(df)
-        # TODO maybe move this
-        df = df.melt(id_vars=self.columns_pks, value_vars=metrics)
-        return self.enrich_colors(df, metrics)
-
+    @property
     @abstractmethod
-    def enrich_colors(self, dfs, metrics):
+    def supported_metrics(self):
         pass
+
+    @property
+    @abstractmethod
+    def default_metrics(self):
+        pass
+
+    @property
+    @abstractmethod
+    def columns_pks(self):
+        pass
+
+    @property
+    def single_metric_link_colors(self):
+        return self.config["single_metric_link_colors"]
+
+    @property
+    def multi_metric_node_colors(self):
+        return self.config["multi_metric_node_colors"]
+
+    @property
+    def multi_metric_node_colors(self):
+        return self.config["multi_metric_node_colors"]
+
+    def _parse_config(self, config_path):
+        config_path = Path(config_path)
+        extra_config = json.load(config_path.open()) if config_path.exists() else {}
+
+        for key, value in extra_config.items():
+            if extra_config.get(key, None):
+                self.defualt_colors[key] = extra_config[key]
+        return self.defualt_colors
 
     def vizualize(self, dfs, metrics, title, open_=True):
         metrics = metrics or self.default_metrics.keys()
         assert all(metric in self.supported_metrics.keys() for metric in
                    metrics), f"The only supported metrics are {self.supported_metrics}"
-        df = self.prepare_dfs_for_sankey(dfs, metrics)
+        df = self._prepare_dfs_for_sankey(dfs, metrics)
 
         data_trace = dict(
             type="sankey",
@@ -80,6 +104,15 @@ class DataFrameSankeyVizualizer(ABC):
                 validate=False,
                 filename=f"{title}-{','.join(metrics)}.html"
             )
+
+    def _prepare_dfs_for_sankey(self, df, metrics):
+        df = df if isinstance(df, pd.DataFrame) else pd.concat(df)
+        df = df.melt(id_vars=self.columns_pks, value_vars=metrics)
+        return self._enrich_colors(df, metrics)
+
+    @abstractmethod
+    def _enrich_colors(self, dfs, metrics):
+        pass
 
 
 if __name__ == "__main__":
