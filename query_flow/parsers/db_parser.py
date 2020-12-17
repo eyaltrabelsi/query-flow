@@ -4,6 +4,8 @@ import pandas as pd
 
 from sqlalchemy import create_engine
 
+__all__ = ["DBParser"]
+
 
 class DBParser(ABC):
     label_replacement = {"UNION": " U ", "JOIN": " ⋈ ", "UNION ALL": " U "}

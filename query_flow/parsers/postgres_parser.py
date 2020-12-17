@@ -4,7 +4,13 @@ from operator import itemgetter
 import numpy as np
 import pandas as pd
 
-from .db_parser import DBParser
+try:
+    from .db_parser import DBParser
+except ImportError:
+    # Support running doctests not as a module
+    from db_parser import DBParser
+
+__all__ = ["PostgresParser"]
 
 
 class PostgresParser(DBParser):

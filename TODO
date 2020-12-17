@@ -18,8 +18,7 @@ Documentation
 - Creating new parser
 
 Resilience
-- Regression tests
-- CI with github action
+- Add parsing testing for "ineffective_operation", "missing_records"
 
 Refactor
 - refactor configuration code

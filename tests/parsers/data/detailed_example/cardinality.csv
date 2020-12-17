@@ -1,0 +1,8 @@
+source,target,operation_type,actual_rows,label,label_metadata
+0,1,Seq Scan,3446261,People,
+1,3,Where,3,People*,"Filter condition: (people.name = ANY ('{""Owen Wilson"",""Adam Sandler"",""Jason Segel""}'::text[]))"
+2,3,Seq Scan,13651901,Crew,
+3,6,Hash Join,565,People* ⋈ Crew,"Hash Cond ('Inner', '(crew.person_id = people.person_id)')"
+4,5,Seq Scan,2379234,Titles,
+5,6,Where,489076,Titles*,Filter condition: (titles.genres ~~ '%Comedy%'::text)
+6,7,Hash Join,186,People* ⋈ Crew ⋈ Titles*,"Hash Cond ('Inner', '(titles.title_id = crew.title_id)')"

@@ -6,6 +6,8 @@ from plotly.offline import plot, iplot
 
 from .config_parser import ConfigParser
 
+__all__ = ["DataFrameSankeyVizualizer"]
+
 
 class DataFrameSankeyVizualizer(ABC):
     supported_metrics = None
