@@ -4,6 +4,7 @@ from tqdm import tqdm
 
 
 def load_tpch():
+    # TODO
     with create_engine('postgresql:///etrabelsi_thesis').connect() as con:
         for cmd_file in tqdm(["tpch-load.sql", "tpch-pkeys.sql", "tpch-alter.sql",  "tpch-index.sql"]):
             print(f"Executing {cmd_file}")

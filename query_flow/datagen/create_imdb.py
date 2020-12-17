@@ -12,6 +12,7 @@ def load_sqlite_db(table):
 
 
 def import_to_postgresql(df, table):
+    # TODO
     df.to_sql(table, create_engine('postgresql:///etrabelsi_thesis'), if_exists='replace')
 
 
