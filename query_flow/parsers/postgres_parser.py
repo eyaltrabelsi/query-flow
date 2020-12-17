@@ -1,8 +1,4 @@
-from functools import wraps
 from operator import itemgetter
-
-import numpy as np
-import pandas as pd
 
 try:
     from .db_parser import DBParser
@@ -18,12 +14,13 @@ class PostgresParser(DBParser):
     node_type_indicator = "Node Type"
     next_operator_indicator = "Plans"
     first_operator_indicator = "Plan"
+    filter_indicator = "Filter"
 
-    supported_metrics = ["Actual Rows", "Actual Total Time", "Plan Rows", "Plan Width", "Total Cost",
-                         "Actual Startup Time", "Actual Loops", "Shared Read Blocks",
-                         "Shared Hit Blocks", "Shared Dirtied Blocks", "Shared Written Blocks",
-                         "Local Hit Blocks", "Local Dirtied Blocks", "Local Read Blocks",
-                         "Local Written Blocks", "Temp Written Blocks", "Temp Read Blocks"]
+    supported_metrics = frozenset(["Actual Rows", "Actual Total Time", "Plan Rows", "Plan Width", "Total Cost",
+                                   "Actual Startup Time", "Actual Loops", "Shared Read Blocks",
+                                   "Shared Hit Blocks", "Shared Dirtied Blocks", "Shared Written Blocks",
+                                   "Local Hit Blocks", "Local Dirtied Blocks", "Local Read Blocks",
+                                   "Local Written Blocks", "Temp Written Blocks", "Temp Read Blocks"])
 
     def __init__(self, is_verbose=False, explain_prefix=None):
         if explain_prefix:
@@ -52,9 +49,6 @@ class PostgresParser(DBParser):
             "Unique": self.parse_unique,
             "Result": self.parse_result,
             "WindowAgg": self.parse_window,
-
-
-
         }
 
         self.verbose_ops = {"Hash", "Gather", "Gather Merge", "Sort", "WindowAgg"}
@@ -82,69 +76,7 @@ class PostgresParser(DBParser):
             "Result": "A Relation primitive",
         }
 
-    def parse_default_decor(func):
-        @wraps(func)
-        def parse(self, target_id, execution_node):
-            defaults_attrs, source_id = self.parse_default(target_id, execution_node)
-            specific_attrs = func(self, execution_node)
-            return [{**defaults_attrs, **specific_attrs}], source_id
-
-        return parse
-
-    def parse_filterable_node_decor(func):
-        @wraps(func)
-        def parse(self, target_id, execution_node):
-            filter_func, clause_func = func(self)
-            defaults_attrs, source_id = self.parse_default(target_id, execution_node)
-            if "Filter" in execution_node:
-                filter_node = {
-                    **defaults_attrs,
-                    **filter_func(execution_node)
-                }
-                target_id = source_id
-                defaults_attrs, source_id = self.parse_default(target_id, execution_node)
-
-            non_filter_node = {
-                **defaults_attrs,
-                **clause_func(execution_node)
-            }
-            parsed_node = [filter_node, non_filter_node] if "Filter" in execution_node else [non_filter_node]
-
-            return parsed_node, source_id
-
-        return parse
-
-    @staticmethod
-    def align_source_target_ids(df, sort=False):
-        min_ = min(set(df["source"]).union(set(df["target"])))
-        df = df.assign(target=lambda x: x.target.map(np.int64).map(lambda y: y - min_),
-                       source=lambda x: x.source.map(np.int64).map(lambda y: y - min_))
-        if sort:
-            df = df.sort_values(by="source")
-        return df
-
-    def parse(self, execution_plan):
-        # Parsing
-        self.cardinality_df = pd.DataFrame({})
-        self.parse_node(execution_plan, target_id=self.max_id)
-        self.cardinality_df = PostgresParser.align_source_target_ids(self.cardinality_df, sort=True)
-
-        # Enriching
-        self.cardinality_df = self.enrich_stats(self.cardinality_df)
-        return self.cardinality_df
-
-    def parse_default(self, target_id, execution_node):
-        source_id = self.get_next_id()
-        parsed_node = {"source": source_id, "target": target_id, "operation_type": execution_node["Node Type"]}
-
-        for metric in self.supported_metrics:
-            if metric in execution_node:
-                normalized_key = metric.replace(" ", "_").lower()
-                parsed_node[normalized_key] = execution_node[metric]
-
-        return parsed_node, source_id
-
-    @parse_default_decor
+    @DBParser.parse_default_decor
     def parse_limit(self, execution_node):
         """
         >>> p = PostgresParser(True)
@@ -156,7 +88,7 @@ class PostgresParser(DBParser):
             "label_metadata": f"LIMIT: {execution_node['Actual Rows']}",
         }
 
-    @parse_default_decor
+    @DBParser.parse_default_decor
     def parse_sort(self, execution_node):
         """
         >>> p = PostgresParser(True)
@@ -172,7 +104,7 @@ class PostgresParser(DBParser):
                               f"Sort Key: {itemgetter('Sort Key')(execution_node)}\n"
         }
 
-    @parse_default_decor
+    @DBParser.parse_default_decor
     def parse_append(self, execution_node):
         """
         >>> p = PostgresParser(True)
@@ -184,7 +116,7 @@ class PostgresParser(DBParser):
             "label_metadata": "",
         }
 
-    @parse_default_decor
+    @DBParser.parse_default_decor
     def parse_window(self, execution_node):
         """
         >>> p = PostgresParser(True)
@@ -196,7 +128,7 @@ class PostgresParser(DBParser):
             "label_metadata": "",
         }
 
-    @parse_default_decor
+    @DBParser.parse_default_decor
     def parse_unique(self, execution_node):
         """
         >>> p = PostgresParser(True)
@@ -208,7 +140,7 @@ class PostgresParser(DBParser):
             "label_metadata": "",
         }
 
-    @parse_default_decor
+    @DBParser.parse_default_decor
     def parse_result(self, execution_node):
         """
         >>> p = PostgresParser(True)
@@ -220,7 +152,7 @@ class PostgresParser(DBParser):
             "label_metadata": "",
         }
 
-    @parse_default_decor
+    @DBParser.parse_default_decor
     def parse_gather(self, execution_node):
         """
         >>> p = PostgresParser(True)
@@ -232,7 +164,7 @@ class PostgresParser(DBParser):
             "label_metadata": "",
         }
 
-    @parse_default_decor
+    @DBParser.parse_default_decor
     def parse_hash(self, execution_node):
         """
         >>> p = PostgresParser(True)
@@ -244,7 +176,7 @@ class PostgresParser(DBParser):
             "label_metadata": "",
         }
 
-    @parse_default_decor
+    @DBParser.parse_default_decor
     def parse_join(self, execution_node):
         """
         >>> p = PostgresParser(True)
@@ -262,7 +194,7 @@ class PostgresParser(DBParser):
             "label_metadata": metadata,
         }
 
-    @parse_filterable_node_decor
+    @DBParser.parse_filterable_node_decor
     def parse_scan(self):
         """
         >>> p = PostgresParser(True)
@@ -282,7 +214,7 @@ class PostgresParser(DBParser):
         yield parse_where
         yield parse_naive_scan
 
-    @parse_filterable_node_decor
+    @DBParser.parse_filterable_node_decor
     def parse_subquery(self):
         """
         >>> p = PostgresParser(True)
@@ -302,7 +234,7 @@ class PostgresParser(DBParser):
         yield parse_where_sub_query
         yield parse_naive_sub_query
 
-    @parse_filterable_node_decor
+    @DBParser.parse_filterable_node_decor
     def parse_aggregate(self):
         """
         >>> p = PostgresParser(True)

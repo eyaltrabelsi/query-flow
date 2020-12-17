@@ -22,6 +22,6 @@ setup(
     classifiers=["Programming Language :: Python :: 3",
                  "License :: OSI Approved :: MIT License"],
     install_requires=install_requires,
-    python_requires='>=3.8',
+    python_requires='>=3.4',
     extras_require={'development': ["pre-commit==2.1.1", "pytest==5.2.0", "tox==3.20.1"]},
 )
