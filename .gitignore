@@ -11,3 +11,4 @@ dist/
 *.db
 *.xml
 *.egg-info
+test-output.xml

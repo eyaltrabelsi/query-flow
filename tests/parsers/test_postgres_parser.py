@@ -1,5 +1,5 @@
 import json
-import os
+import pathlib
 
 import pandas as pd
 import pytest
@@ -16,13 +16,13 @@ def assert_dataframe_almost_acual(right, left):
     assert_frame_equal(right, left)
 
 
-@pytest.mark.parametrize('use_case', os.listdir("data/"))
+@pytest.mark.parametrize('use_case', (pathlib.Path(__file__).parent / "data").iterdir())
 def test_parse(use_case):
-    if use_case in ["ineffective_operation", "missing_records"]:
+    if use_case.name in ["ineffective_operation", "missing_records"]:
         pytest.skip(f"Not implemented yet - {use_case}")
 
     p = PostgresParser()
-    query = json.loads(open(f"data/{use_case}/execution_plan.json", "r").read())
+    query = json.loads(open(f"{use_case}/execution_plan.json", "r").read())
     actual_cardinality_df = p.parse(query)
-    expected_cardinality_df = pd.read_csv(f"data/{use_case}/cardinality.csv")
+    expected_cardinality_df = pd.read_csv(f"{use_case}/cardinality.csv")
     assert_dataframe_almost_acual(actual_cardinality_df, expected_cardinality_df)
