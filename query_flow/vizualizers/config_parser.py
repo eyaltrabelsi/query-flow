@@ -1,6 +1,8 @@
 import json
 from pathlib import Path
 
+__all__ = ["ConfigParser"]
+
 
 class ConfigParser(object):
 

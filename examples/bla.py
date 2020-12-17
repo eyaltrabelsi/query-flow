@@ -1,5 +1,5 @@
-from query_flow.parsers.postgres_parser import PostgresParser
-from query_flow.vizualizers.query_vizualizer import QueryVizualizer
+from query_flow.parsers import PostgresParser
+from query_flow.vizualizers import QueryVizualizer
 
 if __name__ == "__main__":
     query_renderer = QueryVizualizer(parser=PostgresParser())

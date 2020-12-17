@@ -2,6 +2,8 @@ from functools import partial
 
 from .dataframe_sankey_vizualizer import DataFrameSankeyVizualizer
 
+__all__ = ["QueryVizualizer"]
+
 
 class QueryVizualizer(DataFrameSankeyVizualizer):
 
