@@ -50,8 +50,8 @@ class DataFrameSankeyVizualizer(ABC):
 
         for key, value in extra_config.items():
             if extra_config.get(key, None):
-                self.defualt_colors[key] = extra_config[key]
-        return self.defualt_colors
+                self.default_colors[key] = extra_config[key]
+        return self.default_colors
 
     def vizualize(self, dfs, metrics, title, open_=True):
         metrics = metrics or self.default_metrics.keys()

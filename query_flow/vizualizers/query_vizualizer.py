@@ -20,7 +20,6 @@ class QueryVizualizer(DataFrameSankeyVizualizer):
                          "plan_rows": "Rows"}
 
     default_metrics = {"actual_rows": " Rows", "plan_rows": "Rows"}
-
     default_colors = {
         "single_metric_node_colors": {"Aggregate": "purple",
                                       "Having": "mediumpurple",

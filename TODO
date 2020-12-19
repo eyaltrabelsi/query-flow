@@ -1,14 +1,13 @@
 - Create test for multi query parsing
-- Support more operations LIKE exists  BitmapOr Bitmap And  CTEScan
 -  Support multiple queries. I need that the source of query will be dependent on the operation itself
    and since the same operation can take diffrent amount of time I will give the ability to either avg/median/max/min
-- Fix mock issues
 - Add parsing testing for "ineffective_operation", "missing_records"
-- Index should be extracted without nulls rows
+- Support more operations LIKE exists  BitmapOr Bitmap And  CTEScan
+- Unique work wrong with verbose=False
+- datagen refactor
+- support terminal command
 - UI Bug due to .replace(0, 1)
 - Reademe
 - refactor configuration code
-- Installation of tables cleanup'postgresql:///etrabelsi_thesis'
 - Support for pypi
 - Creating new parser
-
