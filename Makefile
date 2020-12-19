@@ -19,15 +19,10 @@ clean:
 	find . -name '.DS_Store' -exec rm -f {} +
 
 test: ## run tests on every Python version with tox
-	tox
+	tox -e py37-unit
 
-docs: ## generate Sphinx HTML documentation, including API docs
-	rm -f docs/pandas_log.rst
-	rm -f docs/modules.rst
-	sphinx-apidoc -o docs/ pandas_log
-	$(MAKE) -C docs clean
-	$(MAKE) -C docs html
-	$(BROWSER) docs/_build/html/index.html
+install:
+	pip3 install -e '.[development]'
 
 install_mock_imdb:
 	python query_flow/datagen/create_imdb.py

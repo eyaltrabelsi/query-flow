@@ -15,6 +15,6 @@ jobs:
       with:
         python-version: 3.7
     - name: Install Dependencies
-      run: pip3 install -e '.[development]'
+      run: make install
     - name: Run Pytest
-      run: tox -e py37-unit
+      run: make test

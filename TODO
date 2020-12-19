@@ -1,7 +1,6 @@
 - Create test for multi query parsing
 -  Support multiple queries. I need that the source of query will be dependent on the operation itself
    and since the same operation can take diffrent amount of time I will give the ability to either avg/median/max/min
-- Add parsing testing for "ineffective_operation", "missing_records"
 - Support more operations LIKE exists  BitmapOr Bitmap And  CTEScan
 - Unique work wrong with verbose=False
 - datagen refactor

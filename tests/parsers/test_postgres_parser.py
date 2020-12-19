@@ -18,10 +18,8 @@ def assert_dataframe_almost_acual(right, left):
 
 @pytest.mark.parametrize('use_case', (pathlib.Path(__file__).parent / "data").iterdir())
 def test_parse(use_case):
-    if use_case.name in ["ineffective_operation", "missing_records"]:
-        pytest.skip(f"Not implemented yet - {use_case}")
-
-    p = PostgresParser()
+    is_verbose = use_case.name == "ineffective_operation"
+    p = PostgresParser(is_verbose)
     query = json.loads(open(f"{use_case}/execution_plan.json", "r").read())
     actual_cardinality_df = p.parse(query)
     expected_cardinality_df = pd.read_csv(f"{use_case}/cardinality.csv")

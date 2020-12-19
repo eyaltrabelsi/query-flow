@@ -1,0 +1,7 @@
+source,target,operation_type,actual_rows,label,label_metadata
+0,1,Seq Scan,2379234,Titles,
+1,2,Where,10359,Titles*,Filter condition: (titles_1.genres = 'Action'::text)
+2,5,Gather,31076,Gather,
+3,4,Seq Scan,7137701,Titles,
+4,5,Where,513882,Titles*,Filter condition: (titles.genres = 'Comedy'::text)
+5,6,Append,544958,Gather U Titles*,
