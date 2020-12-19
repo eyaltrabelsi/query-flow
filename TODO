@@ -1,4 +1,3 @@
-- Create test for multi query parsing
 -  Support multiple queries. I need that the source of query will be dependent on the operation itself
    and since the same operation can take diffrent amount of time I will give the ability to either avg/median/max/min
 - Support more operations LIKE exists  BitmapOr Bitmap And  CTEScan
@@ -8,5 +7,6 @@
 - UI Bug due to .replace(0, 1)
 - Reademe
 - refactor configuration code
+- refactor enrichment_stats
 - Support for pypi
 - Creating new parser

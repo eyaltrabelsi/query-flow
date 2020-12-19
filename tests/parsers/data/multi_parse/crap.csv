@@ -1,0 +1,13 @@
+source,target,operation_type,plan_rows,local_written_blocks,temp_read_blocks,actual_startup_time,actual_rows,local_hit_blocks,local_dirtied_blocks,local_read_blocks,actual_loops,shared_dirtied_blocks,temp_written_blocks,shared_hit_blocks,total_cost,shared_written_blocks,actual_total_time,plan_width,shared_read_blocks,label,label_metadata,actual_duration,estimated_cost,actual_startup_duration,redundent_operation,actual_duration_pct,estimated_cost_pct,actual_plan_rows_ratio
+0,1,Seq Scan,5,0,0,184.948,3446261,0,0,0,3,0,0,96,141258.61,0,517.757,10,81930,People,,517.757,141258.61,184.948,False,100.0,100.0,True
+1,3,Where,5,0,0,184.948,3,0,0,0,3,0,0,96,141258.61,0,517.757,10,81930,People*,"Filter condition: (people.name = ANY ('{""Owen Wilson"",""Adam Sandler"",""Jason Segel""}'::text[]))",0.0,0.0,-141073.66199999998,False,0.0,0.0,False
+2,3,Seq Scan,17064877,0,0,0.074,13651901,0,0,0,3,0,0,96,566508.77,0,1503.825,20,395764,Crew,,1503.825,566508.77,0.074,False,100.0,100.0,False
+3,6,Hash Join,21,0,0,587.014,565,0,0,0,3,0,0,192,771760.8,0,3629.367,10,477694,People* ⋈ Crew,"Hash Cond ('Inner', '(crew.person_id = people.person_id)')",2125.5420000000004,205252.03000000003,-565921.756,False,58.565088622892105,26.595290924338215,True
+4,5,Seq Scan,616393,0,0,0.053,2379234,0,0,0,3,0,0,96,160668.53,0,493.101,10,123397,Titles,,493.101,160668.53,0.053,False,100.0,100.0,False
+5,6,Where,616393,0,0,0.053,489076,0,0,0,3,0,0,96,160668.53,0,493.101,10,123397,Titles*,Filter condition: (titles.genres ~~ '%Comedy%'::text),0.0,0.0,-160668.47699999998,False,0.0,0.0,False
+6,7,Hash Join,5,0,0,3638.871,186,0,0,0,3,0,0,459,934741.09,0,4190.602,10,601091,People* ⋈ Crew ⋈ Titles*,"Hash Cond ('Inner', '(titles.title_id = crew.title_id)')",561.2349999999997,162980.28999999992,-768121.929,False,13.3927058689897,17.435875211177454,True
+7,8,Seq Scan,12982,0,0,0.125,2379234,0,0,0,3,0,0,4572,160656.55,0,399.961,10,118921,Titles,,-3790.6409999999996,-774084.54,-934740.965,False,-947.7526558839486,-481.82569587109896,True
+8,11,Where,12982,0,0,0.125,10359,0,0,0,3,0,0,4572,160656.55,0,399.961,10,118921,Titles*,Filter condition: (titles_1.genres = 'Action'::text),0.0,0.0,-160656.425,False,0.0,0.0,False
+9,10,Seq Scan,504235,0,0,0.054,7137701,0,0,0,1,0,0,4540,212685.51,0,1137.667,10,118953,Titles,,1137.667,212685.51,0.054,False,100.0,100.0,True
+10,11,Where,504235,0,0,0.054,513882,0,0,0,1,0,0,4540,212685.51,0,1137.667,10,118953,Titles*,Filter condition: (titles.genres = 'Comedy'::text),0.0,0.0,-212685.456,False,0.0,0.0,False
+11,12,Append,535393,0,0,0.054,544958,0,0,0,1,0,0,9112,385488.75,0,1600.996,10,237874,Titles* U Titles*,,463.3290000000002,172803.24,-212685.456,False,28.940047320542973,44.82705137309455,False

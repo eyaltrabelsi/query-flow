@@ -5,12 +5,12 @@ QueryFlow visualizes the query execution using the Sankey diagram, a technique t
 This allow to tackle the following problems:
 -	Identifying missing records.
 -	Identifying Ineffective operations.
--	Identifying duplications. 
+-	Identifying duplications.
 -	Identifying performance bottlenecks in a single query.
--	Identifying performance bottlenecks in multiple queries. 
+-	Identifying performance bottlenecks in multiple queries.
 
 
- 
+
 ## Installing #
 ``` shell
 pip install git+https://github.com/eyaltrabelsi/query-flow.git

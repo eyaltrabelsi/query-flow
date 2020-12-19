@@ -1,5 +1,5 @@
 
-cat.PHONY: clean test install_mock_tpch install_mock_imdb docs
+cat.PHONY: clean test install_mock_tpch install_mock_imdb docs lint
 
 clean:
 	find . -name '*.pyc' -exec rm -f {} +
@@ -17,6 +17,9 @@ clean:
 	find . -name '*.egg-info' -exec rm -fr {} +
 	find . -name '*.egg' -exec rm -f {} +
 	find . -name '.DS_Store' -exec rm -f {} +
+
+lint:
+	pre-commit run --all-files
 
 test: ## run tests on every Python version with tox
 	tox -e py37-unit
