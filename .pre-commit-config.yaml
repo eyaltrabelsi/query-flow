@@ -1,20 +1,43 @@
 repos:
-  - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v2.4.0
+-   repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v3.3.0
     hooks:
-      - id: trailing-whitespace
-        exclude: ^examples
-      - id: check-yaml
-      - id: check-json
-      - id: pretty-format-json
-        args: ['--autofix']
-      - id: flake8
-        additional_dependencies: [pandas-vet==0.2.2, flake8-bugbear==20.1.4]
-        args: ['--ignore=E501,B011,PD005'] # ignore line too long and assert (as we dont use python -O)
-
-  - repo: https://github.com/asottile/reorder_python_imports
-    rev: v2.3.0
+    -   id: trailing-whitespace
+    -   id: end-of-file-fixer
+    -   id: check-docstring-first
+    -   id: check-json
+        exclude: ^proposal
+    -   id: check-yaml
+    -   id: debug-statements
+    -   id: name-tests-test
+    -   id: requirements-txt-fixer
+    -   id: double-quote-string-fixer
+-   repo: https://gitlab.com/pycqa/flake8
+    rev: 3.8.4
     hooks:
-      - id: reorder-python-imports
-
-
+    -   id: flake8
+        additional_dependencies: [pandas-vet==0.2.2, flake8-bugbear==20.1.4, flake8-typing-imports==1.10.0]
+        args: ['--ignore=E501,B011,PD005,PD011'] # ignore line too long and assert (as we dont use python -O)
+-   repo: https://github.com/pre-commit/mirrors-autopep8
+    rev: v1.5.4
+    hooks:
+    -   id: autopep8
+-   repo: https://github.com/asottile/pyupgrade
+    rev: v2.7.4
+    hooks:
+    -   id: pyupgrade
+        args: [--py3-plus]
+-   repo: https://github.com/asottile/setup-cfg-fmt
+    rev: v1.10.0
+    hooks:
+    -   id: setup-cfg-fmt
+-   repo: https://github.com/asottile/reorder_python_imports
+    rev: v2.3.6
+    hooks:
+    -   id: reorder-python-imports
+        args: [--py3-plus]
+-   repo: https://github.com/pre-commit/mirrors-mypy
+    rev: v0.790
+    hooks:
+    -   id: mypy
+        exclude: ^proposal
