@@ -21,6 +21,7 @@ class DBParser(ABC):
     required_parsed_attr = frozenset(['label', 'label_metadata'])
     max_supported_nodes = 10000
 
+    # TODO is_verbose all_operations, group operations
     def __init__(self, is_verbose=False):
         self.is_verbose = is_verbose
         self._cleanup_state()
@@ -93,6 +94,7 @@ class DBParser(ABC):
             representation = f"{execution_node[self.node_type_indicator]} {target_id} {specific_attrs['label']} {specific_attrs['label_metadata']}"
             return hashlib.sha224(representation.encode()).hexdigest()
 
+        # TODO compact
         hash_node = get_hash(execution_node, target_id, specific_attrs)
 
         if hash_node not in self.label_to_id_dict:

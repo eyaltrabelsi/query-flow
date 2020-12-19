@@ -27,6 +27,10 @@ repos:
     hooks:
     -   id: pyupgrade
         args: [--py3-plus]
+-   repo: https://github.com/asottile/setup-cfg-fmt
+    rev: v1.10.0
+    hooks:
+    -   id: setup-cfg-fmt
 -   repo: https://github.com/asottile/reorder_python_imports
     rev: v2.3.6
     hooks:

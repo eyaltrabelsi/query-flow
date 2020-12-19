@@ -22,7 +22,7 @@ lint:
 	pre-commit run --all-files
 
 test: ## run tests on every Python version with tox
-	tox -e py37-unit
+	tox
 
 install:
 	pip3 install -e '.[development]'
