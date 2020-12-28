@@ -23,8 +23,27 @@ class DBParser(ABC):
 
     # TODO is_verbose all_operations, group operations
     def __init__(self, is_verbose=False):
+        assert set(self.strategy_dict.keys()).issubset(
+            set(self.description_dict.keys()))
+
         self.is_verbose = is_verbose
         self._cleanup_state()
+
+    # TODO move to data class
+    @property
+    @abstractmethod
+    def verbose_ops(self):
+        pass
+
+    @property
+    @abstractmethod
+    def strategy_dict(self):
+        pass
+
+    @property
+    @abstractmethod
+    def description_dict(self):
+        pass
 
     @property
     @abstractmethod
@@ -72,13 +91,13 @@ class DBParser(ABC):
         for execution_plan in listify(execution_plans):
             self.parse_node(execution_plan, target_id=self.max_id)
 
-        cardinality_df = DBParser.align_source_target_ids(self.cardinality_df)
-        cardinality_df = self.enrich_stats(cardinality_df)
-        return cardinality_df
+        flow_df = DBParser.align_source_target_ids(self.flow_df)
+        flow_df = self.enrich_stats(flow_df)
+        return flow_df
 
     def _cleanup_state(self):
         self.label_to_id_dict = {}
-        self.cardinality_df = pd.DataFrame({})
+        self.flow_df = pd.DataFrame({})
         self.max_id = np.int64(self.max_supported_nodes)
 
     def parse_node(self, execution_node, target_id):
@@ -89,7 +108,7 @@ class DBParser(ABC):
             parsed_nodes, source_id = self.strategy_dict[node_type](
                 target_id, execution_node,
             )
-            self.cardinality_df = self.cardinality_df.append(
+            self.flow_df = self.flow_df.append(
                 parsed_nodes, ignore_index=True,
             )
 

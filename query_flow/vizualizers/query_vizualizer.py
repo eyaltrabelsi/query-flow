@@ -48,13 +48,13 @@ class QueryVizualizer(DataFrameSankeyVizualizer):
         super().__init__(config_path)
         self.parser = parser
 
-    def get_cardinality_df(self, query, con_str, should_log=False):
+    def get_flow_df(self, query, con_str, should_log=False):
         execution_plan = self.parser.from_query(query, con_str, should_log)
         return self.parser.parse(execution_plan)
 
     def _enrich_colors(self, df, metrics):
         if len(metrics) > 1:
-            # TODO generelize this
+            # TODO generelize this hsl take the color and change the ehue luminus from 40 to 75 divided
             df['color_link'] = df['variable'].astype('category').cat.codes.map(
                 lambda code: [
                     'gainsboro', 'darkgray', 'dimgray',

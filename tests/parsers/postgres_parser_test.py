@@ -23,10 +23,10 @@ def test_parse(use_case):
     is_verbose = use_case.name == 'ineffective_operation'
     p = PostgresParser(is_verbose)
     query = json.loads(open(f'{use_case}/execution_plan.json').read())
-    actual_cardinality_df = p.parse(query)
-    expected_cardinality_df = pd.read_csv(f'{use_case}/cardinality.csv')
+    actual_flow_df = p.parse(query)
+    expected_flow_df = pd.read_csv(f'{use_case}/cardinality.csv')
     assert_dataframe_almost_acual(
-        actual_cardinality_df, expected_cardinality_df,
+        actual_flow_df, expected_flow_df,
     )
 
 
@@ -37,8 +37,8 @@ def test_parse_multi(use_case):
         json.loads(open(query_f).read())
         for query_f in use_case.glob('*.json')
     ]
-    actual_cardinality_df = p.parse(queries)
-    expected_cardinality_df = pd.read_csv(f'{use_case}/cardinality.csv')
+    actual_flow_df = p.parse(queries)
+    expected_flow_df = pd.read_csv(f'{use_case}/cardinality.csv')
     assert_dataframe_almost_acual(
-        actual_cardinality_df, expected_cardinality_df,
+        actual_flow_df, expected_flow_df,
     )

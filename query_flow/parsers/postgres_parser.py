@@ -47,10 +47,42 @@ class PostgresParser(DBParser):
 
     def __init__(self, is_verbose=False, execute_query=True):
         self.query_prefix = self.explain_analyze_prefix if execute_query else self.explain_prefix
+    verbose_ops = {'Hash', 'Gather', 'Gather Merge', 'Sort', 'WindowAgg', }
+
+    description_dict = {
+        'Append': 'Used in a UNION to merge multiple record sets by appending them together.',
+        'Limit': 'Returns a specified number of rows from a record set.',
+        'Hash Join': 'Joins to record sets by hashing one of them (using a Hash Scan).',
+        'Aggregate': 'Groups records together based on a GROUP BY or aggregate function (e.g. sum()).',
+        'Hashaggregate': 'Groups records together based on a GROUP BY or aggregate function (e.g. sum()). Hash Aggregate uses a hash to first organize the records by a key.',
+        'Seq Scan': 'Finds relevant records by sequentially scanning the input record set. When reading from a table, Seq Scans (unlike Index Scans) perform a single read operation (only the table is read).',
+        'Where': 'Filter relation to hold only relevant records.',
+        'Having': 'Filter relation to hold only relevant records.',
+        'Sort': 'Sorts a record set based on the specified sort key.',
+        'Nested Loop': 'Merges two record sets by looping through every record in the first set and trying to find a match in the second set. All matching records are returned.',
+        'Merge Join': 'Merges two record sets by first sorting them on a join key.',
+        'Hash': 'Generates a hash table from the records in the input recordset. Hash is used by Hash Join.',
+        'Index Scan': 'Finds relevant records based on an Index. Index Scans perform 2 read operations: one to read the index and another to read the actual value from the table.',
+        'Bitmap Heap Scan': 'Searches through the pages returned by the Bitmap Index Scan for relevant rows.',
+        'Bitmap Index Scan': 'Uses a Bitmap Index (index which uses 1 bit per page) to find all relevant pages. Results of this node are fed to the Bitmap Heap Scan.',
+        'Index Only Scan': 'Finds relevant records based on an Index. Index Only Scans perform a single read operation from the index and do not read from the corresponding table.',
+        'Gather': 'Collect relevant records from the workers.',
+        'Gather Merge': 'Collect relevant records from the workers in ordered manner.',
+        'Unique': 'Remove duplicated rows from a record set.',
+        'WindowAgg': 'Calculate window function according to the OVER statements.',
+        'Result': 'A Relation primitive',
+        'Subquery Scan': ''  # TODO
+    }
+
+    def __init__(self, is_verbose=False, explain_prefix=None):
+        if explain_prefix:
+            self.explain_prefix = explain_prefix
 
         super().__init__(is_verbose)
 
-        self.strategy_dict = {
+    @property
+    def strategy_dict(self):
+        return {
             'Limit': self.parse_limit,
             'Seq Scan': self.parse_scan,
             'Subquery Scan': self.parse_subquery,
@@ -71,34 +103,6 @@ class PostgresParser(DBParser):
             'Unique': self.parse_unique,
             'Result': self.parse_result,
             'WindowAgg': self.parse_window,
-        }
-
-        self.verbose_ops = {
-            'Hash', 'Gather',
-            'Gather Merge', 'Sort', 'WindowAgg',
-        }
-        self.description_dict = {
-            'Append': 'Used in a UNION to merge multiple record sets by appending them together.',
-            'Limit': 'Returns a specified number of rows from a record set.',
-            'Hash Join': 'Joins to record sets by hashing one of them (using a Hash Scan).',
-            'Aggregate': 'Groups records together based on a GROUP BY or aggregate function (e.g. sum()).',
-            'Hashaggregate': 'Groups records together based on a GROUP BY or aggregate function (e.g. sum()). Hash Aggregate uses a hash to first organize the records by a key.',
-            'Seq Scan': 'Finds relevant records by sequentially scanning the input record set. When reading from a table, Seq Scans (unlike Index Scans) perform a single read operation (only the table is read).',
-            'Where': 'Filter relation to hold only relevant records.',
-            'Having': 'Filter relation to hold only relevant records.',
-            'Sort': 'Sorts a record set based on the specified sort key.',
-            'Nested Loop': 'Merges two record sets by looping through every record in the first set and trying to find a match in the second set. All matching records are returned.',
-            'Merge Join': 'Merges two record sets by first sorting them on a join key.',
-            'Hash': 'Generates a hash table from the records in the input recordset. Hash is used by Hash Join.',
-            'Index Scan': 'Finds relevant records based on an Index. Index Scans perform 2 read operations: one to read the index and another to read the actual value from the table.',
-            'Bitmap Heap Scan': 'Searches through the pages returned by the Bitmap Index Scan for relevant rows.',
-            'Bitmap Index Scan': 'Uses a Bitmap Index (index which uses 1 bit per page) to find all relevant pages. Results of this node are fed to the Bitmap Heap Scan.',
-            'Index Only Scan': 'Finds relevant records based on an Index. Index Only Scans perform a single read operation from the index and do not read from the corresponding table.',
-            'Gather': 'Collect relevant records from the workers.',
-            'Gather Merge': 'Collect relevant records from the workers in ordered manner.',
-            'Unique': 'Remove duplicated rows from a record set.',
-            'WindowAgg': 'Calculate window function according to the OVER statements.',
-            'Result': 'A Relation primitive',
         }
 
     @DBParser.parse_default_decor
@@ -229,6 +233,7 @@ class PostgresParser(DBParser):
         >>> p.parse_scan(1000, {"Node Type": "Seq Scan", "Relation Name": "people", "Actual Rows": 3, "Filter": "people.age = 30", "Rows Removed by Filter": 3446258})
         ([{'source': 9999, 'target': 1000, 'operation_type': 'Where', 'actual_rows': 3, 'label': 'People*', 'label_metadata': 'Filter condition: people.age = 30'}, {'source': 9998, 'target': 9999, 'operation_type': 'Seq Scan', 'actual_rows': 3446261, 'label': 'People', 'label_metadata': ''}], 9998)
         """
+
         def parse_where(execution_node):
             return {
                 'label': f'{execution_node["Relation Name"].title()}*',
@@ -255,6 +260,7 @@ class PostgresParser(DBParser):
         >>> p.parse_subquery(1000, {"Node Type": "Subquery Scan", "Actual Rows": 3, "Filter": "people.age = 30", "Rows Removed by Filter": 3446258, "Alias": "a"})
         ([{'source': 9999, 'target': 1000, 'operation_type': 'Where', 'actual_rows': 3, 'label': 'a*', 'label_metadata': 'Filter condition: people.age = 30'}, {'source': 9998, 'target': 9999, 'operation_type': 'Subquery Scan', 'actual_rows': 3446261, 'label': 'a', 'label_metadata': ''}], 9998)
         """
+
         def parse_naive_sub_query(execution_node):
             res = {
                 'label': execution_node['Alias'],
@@ -345,4 +351,5 @@ class PostgresParser(DBParser):
 
 if __name__ == '__main__':
     import doctest
+
     doctest.testmod()
