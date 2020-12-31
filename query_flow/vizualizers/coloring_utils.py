@@ -49,11 +49,12 @@ def sample_colors(n):
     2
     """
     if n <= 7:
-        colors = ['red', 'purple', 'yellow',
-                  'green', 'khaki', 'orange', 'silver']
+        colors = ['yellow', 'green', 'khaki',
+                  'red', 'purple', 'orange', 'silver']
     else:
         colors = [color[0] for color in RGB_TO_COLOR_NAMES.values()]
-    return random.sample(colors, n)
+        random.shuffle(colors)
+    return colors[:n]
 
 
 if __name__ == '__main__':

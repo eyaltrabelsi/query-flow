@@ -1,5 +1,4 @@
 import collections
-
 from abc import ABC
 from abc import abstractmethod
 
@@ -52,7 +51,7 @@ class DataFrameSankeyVizualizer(ABC):
             valuesuffix=flow_df['variable'].map(self.supported_metrics),
             node=dict(
                 pad=200,
-                label=flow_df['label'],
+                label=flow_df['label'].unique(),
                 color=flow_df['color_node'],
             ),
             link=dict(

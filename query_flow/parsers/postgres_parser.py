@@ -44,9 +44,6 @@ class PostgresParser(DBParser):
         'Local Hit Blocks', 'Local Dirtied Blocks', 'Local Read Blocks',
         'Local Written Blocks', 'Temp Written Blocks', 'Temp Read Blocks',
     ])
-
-    def __init__(self, is_verbose=False, execute_query=True):
-        self.query_prefix = self.explain_analyze_prefix if execute_query else self.explain_prefix
     verbose_ops = {'Hash', 'Gather', 'Gather Merge', 'Sort', 'WindowAgg', }
 
     description_dict = {
@@ -74,11 +71,10 @@ class PostgresParser(DBParser):
         'Subquery Scan': 'A Subquery Scan is for scanning the output of a sub-query in the range table.'
     }
 
-    def __init__(self, is_verbose=False, explain_prefix=None):
-        if explain_prefix:
-            self.explain_prefix = explain_prefix
+    def __init__(self, is_verbose=False, is_compact=False, execute_query=True):
+        self.query_prefix = self.explain_analyze_prefix if execute_query else self.explain_prefix
 
-        super().__init__(is_verbose)
+        super().__init__(is_verbose, is_compact)
 
     @property
     def strategy_dict(self):
@@ -247,7 +243,8 @@ class PostgresParser(DBParser):
                 'label_metadata': ''
             }
             if 'Actual Rows' in execution_node:
-                res['actual_rows'] = execution_node['Actual Rows'] + execution_node.get('Rows Removed by Filter', 0)
+                res['actual_rows'] = execution_node['Actual Rows'] + \
+                    execution_node.get('Rows Removed by Filter', 0)
             return res
 
         yield parse_where
@@ -267,7 +264,8 @@ class PostgresParser(DBParser):
                 'label_metadata': '',
             }
             if 'Actual Rows' in execution_node:
-                res['actual_rows'] = execution_node['Actual Rows'] + execution_node.get('Rows Removed by Filter', 0)
+                res['actual_rows'] = execution_node['Actual Rows'] + \
+                    execution_node.get('Rows Removed by Filter', 0)
             return res
 
         def parse_where_sub_query(execution_node):
@@ -288,6 +286,7 @@ class PostgresParser(DBParser):
         ([{'source': 9999, 'target': 9996, 'operation_type': 'Having', 'actual_rows': 3, 'label': 'AGG*', 'label_metadata': 'Filter condition: (count(1) > 5)'}, {'source': 9998, 'target': 9999, 'operation_type': 'Hashaggregate', 'actual_rows': 37, 'label': 'AGG', 'label_metadata': "Group key: ['titles.genres']\\nOutput: ['titles.genres']"}], 9998)
         """
 
+        # todo FIX STR repreesntation
         def parse_having(execution_node):
             return {
                 'label': 'AGG*',
@@ -302,7 +301,8 @@ class PostgresParser(DBParser):
                                   f"Output: {itemgetter('Output')(execution_node)}"
             }
             if 'Actual Rows' in execution_node:
-                res['actual_rows'] = execution_node['Actual Rows'] + execution_node.get('Rows Removed by Filter', 0)
+                res['actual_rows'] = execution_node['Actual Rows'] + \
+                    execution_node.get('Rows Removed by Filter', 0)
             return res
 
         yield parse_having
@@ -325,8 +325,8 @@ class PostgresParser(DBParser):
                     max(relevant_ops.actual_total_time)
                 df.loc[
                     i, 'actual_startup_duration'] = row.actual_startup_time if relevant_ops.empty else row.actual_startup_time - \
-                                                                                                       max(
-                                                                                                           relevant_ops.total_cost)
+                    max(
+                    relevant_ops.total_cost)
 
             df.loc[i, 'estimated_cost'] = row.total_cost if relevant_ops.empty else row.total_cost - \
                 max(relevant_ops.total_cost)
@@ -340,12 +340,16 @@ class PostgresParser(DBParser):
                     sum(relevant_ops.actual_rows) == row.actual_rows
                 )
 
-        df['estimated_cost_pct'] = calc_precentage(df['estimated_cost'], df['total_cost'])
+        df['estimated_cost_pct'] = calc_precentage(
+            df['estimated_cost'], df['total_cost'])
         if 'actual_startup_time' in df.columns:
-            df['actual_duration_pct'] = calc_precentage(df['actual_duration'], df['actual_total_time'])
-            df['actual_plan_rows_ratio'] = calc_ratio(df, 'actual_rows', 'plan_rows')
+            df['actual_duration_pct'] = calc_precentage(
+                df['actual_duration'], df['actual_total_time'])
+            df['actual_plan_rows_ratio'] = calc_ratio(
+                df, 'actual_rows', 'plan_rows')
 
-        df["label_metadata"] = df.operation_type.map(lambda s: f"\nDescription: {self.description_dict.get(s,'')}" if s else "") + df.label_metadata
+        df['label_metadata'] = df.operation_type.map(
+            lambda s: f"\nDescription: {self.description_dict.get(s,'')}" if s else '') + df.label_metadata
         return df
 
 

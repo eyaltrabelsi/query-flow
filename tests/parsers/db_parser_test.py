@@ -5,18 +5,34 @@ from query_flow.parsers.db_parser import DBParser
 from query_flow.parsers.postgres_parser import PostgresParser
 
 
-def test_get_next_id():
-    parser = PostgresParser()
+def test_not_compact_get_next_id():
+    parser = PostgresParser(is_compact=False)
     given_new_node = {
         'execution_node': {'Node Type': 'Hash Join'},
-        'target_id': 1,
         'specific_attrs': {'label': 'JOIN', 'label_metadata': 'Hash Cond'},
     }
-    actual_new_node = parser._get_next_id(**given_new_node)
+    current_hash = parser._get_hash(**given_new_node)
+    actual_new_node = parser._get_next_id(current_hash)
+    assert actual_new_node == parser.max_supported_nodes - 1
+
+    current_hash = parser._get_hash(**given_new_node)
+    actual_existing_node = parser._get_next_id(current_hash)
+    assert actual_existing_node == parser.max_supported_nodes - 2
+
+
+def test_compact_get_next_id():
+    parser = PostgresParser(is_compact=True)
+    given_new_node = {
+        'execution_node': {'Node Type': 'Hash Join'},
+        'specific_attrs': {'label': 'JOIN', 'label_metadata': 'Hash Cond'},
+    }
+    current_hash = parser._get_hash(**given_new_node)
+    actual_new_node = parser._get_next_id(current_hash)
     assert actual_new_node == parser.max_supported_nodes - 1
     assert len(parser.label_to_id_dict) == 1
 
-    actual_existing_node = parser._get_next_id(**given_new_node)
+    current_hash = parser._get_hash(**given_new_node)
+    actual_existing_node = parser._get_next_id(current_hash)
     assert actual_existing_node == parser.max_supported_nodes - 1
     assert len(parser.label_to_id_dict) == 1
 
