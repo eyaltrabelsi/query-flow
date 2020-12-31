@@ -71,7 +71,7 @@ class PostgresParser(DBParser):
         'Unique': 'Remove duplicated rows from a record set.',
         'WindowAgg': 'Calculate window function according to the OVER statements.',
         'Result': 'A Relation primitive',
-        'Subquery Scan': ''  # TODO
+        'Subquery Scan': 'A Subquery Scan is for scanning the output of a sub-query in the range table.'
     }
 
     def __init__(self, is_verbose=False, explain_prefix=None):

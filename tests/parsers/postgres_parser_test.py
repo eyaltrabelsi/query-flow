@@ -22,7 +22,7 @@ def assert_dataframe_almost_acual(right, left):
 def test_parse(use_case):
     is_verbose = use_case.name == 'ineffective_operation'
     p = PostgresParser(is_verbose)
-    query = json.loads(open(f'{use_case}/execution_plan.json').read())
+    query = [json.loads(open(f'{use_case}/execution_plan.json').read())]
     actual_flow_df = p.parse(query)
     expected_flow_df = pd.read_csv(f'{use_case}/cardinality.csv')
     assert_dataframe_almost_acual(

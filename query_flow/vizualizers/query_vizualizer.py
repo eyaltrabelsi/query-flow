@@ -1,15 +1,23 @@
 try:
+    from .coloring_utils import sample_colors, color_range
     from .dataframe_sankey_vizualizer import DataFrameSankeyVizualizer
 except ImportError:
     # Support running doctests not as a module
     from dataframe_sankey_vizualizer import DataFrameSankeyVizualizer  # type: ignore
+    from coloring_utils import sample_colors, color_range  # type: ignore
 
 __all__ = ['QueryVizualizer']
 
 
+def listify(val):
+    if type(val) in [str, int, float, dict]:
+        return [val]
+    return val
+
+
 class QueryVizualizer(DataFrameSankeyVizualizer):
     columns_pks = frozenset([
-        'source', 'target', 'label',
+        'source', 'target', 'label', 'query_hash',
         'label_metadata', 'operation_type', 'redundent_operation',
     ])
 
@@ -24,67 +32,76 @@ class QueryVizualizer(DataFrameSankeyVizualizer):
     }
 
     default_metrics = {'actual_rows': ' Rows', 'plan_rows': 'Rows'}
-    default_colors = {
-        'single_metric_node_colors': {
-            'Aggregate': 'purple',
-            'Having': 'mediumpurple',
-            'Hashaggregate': 'purple',
-            'Join': 'mediumseagreen',
-            'Hash Join': 'mediumseagreen',
-            'Append': 'olivedrab',
-            'Scan': 'blue',
-            'Seq Scan': 'blue',
-            'Limit': 'khaki',
-            'Nested Loop': 'mediumseagreen',
-            'Where': 'deepskyblue',
-        },
-        'single_metric_link_colors': {'default': 'silver', 'empty': 'red', 'redundant': 'coral'},
-        'multi_metric_node_colors': {},
-        'multi_metric_link_colors': {'default': 'silver'},
-
+    node_colors = {
+        'Aggregate': 'purple',
+        'Having': 'mediumpurple',
+        'Hashaggregate': 'purple',
+        'Join': 'mediumseagreen',
+        'Hash Join': 'mediumseagreen',
+        'Append': 'olivedrab',
+        'Scan': 'blue',
+        'Seq Scan': 'blue',
+        'Limit': 'khaki',
+        'Nested Loop': 'mediumseagreen',
+        'Where': 'deepskyblue',
     }
+    special_cases_link_colors = {'empty': 'red', 'redundant': 'coral'}
 
-    def __init__(self, parser, config_path='example_config'):
-        super().__init__(config_path)
+    def __init__(self, parser, is_colored_nodes=False, node_colors=None):
+        super().__init__()
         self.parser = parser
+        self.is_colored_nodes = is_colored_nodes
 
-    def get_flow_df(self, query, con_str, should_log=False):
-        execution_plan = self.parser.from_query(query, con_str, should_log)
-        return self.parser.parse(execution_plan)
+        if node_colors:
+            self.node_colors = node_colors
+
+    def get_flow_df(self, queries, con_str, should_log=False):
+        execution_plans = [self.parser.from_query(query, con_str, should_log)
+                           for query in listify(queries)]
+        return self.parser.parse(execution_plans)
 
     def _enrich_colors(self, df, metrics):
-        if len(metrics) > 1:
-            # TODO generelize this hsl take the color and change the ehue luminus from 40 to 75 divided
-            df['color_link'] = df['variable'].astype('category').cat.codes.map(
-                lambda code: [
-                    'gainsboro', 'darkgray', 'dimgray',
-                    'slategray', 'darkslategray',
-                ][code],
+        # Apply basic coloring for queries links
+        queries_base_link_colors = sample_colors(df.query_hash.nunique())
+        df['color_link'] = 'silver'
+        if len(queries_base_link_colors) > 1:
+            df['color_link'] = df['query_hash'].astype('category').cat.codes.map(
+                lambda code: queries_base_link_colors[code]
             )
-            df['color_node'] = df['operation_type'].map(
-                self.multi_metric_node_colors,
+
+        # Adjusting luminance according to the number of metrics
+        for color in df['color_link'].unique():
+            adjusted_colors = list(color_range(color, len(metrics)))
+            df.loc[df['color_link'] == color, 'color_link'] = df['variable'].astype('category').cat.codes.map(
+                lambda code: adjusted_colors[code]
             )
+
+        # Apply special case coloring for queries link
+        what_case = df.apply(lambda x: QueryVizualizer._get_case(
+            x['variable'], x['value'], x['redundent_operation']), axis=1)
+        df.loc[what_case != 'default', 'color_link'] = what_case.map(
+            self.special_cases_link_colors)
+
+        # Apply basic coloring for queries nodes
+        if self.is_colored_nodes:
+            df['color_node'] = df['operation_type'].map(self.node_colors)
         else:
-            df['color_link'] = df.apply(lambda x: QueryVizualizer._color_edge(x['variable'], x['value'], x['redundent_operation']), axis=1)\
-                                 .map(self.single_metric_link_colors)
-            df['color_node'] = df['operation_type'].map(
-                self.single_metric_link_colors,
-            )
+            df['color_node'] = 'black'
         return df
 
     @staticmethod
-    def _color_edge(metric, value, redundent_operation):
+    def _get_case(metric, value, redundent_operation):
         """
-        >>> QueryVizualizer._color_edge("actual_rows", 0, True)
+        >>> QueryVizualizer._get_case("actual_rows", 0, True)
         'redundant'
 
-        >>> QueryVizualizer._color_edge("actual_rows", 0, False)
+        >>> QueryVizualizer._get_case("actual_rows", 0, False)
         'empty'
 
-        >>> QueryVizualizer._color_edge("actual_rows", 2, False)
+        >>> QueryVizualizer._get_case("actual_rows", 2, False)
         'default'
 
-        >>> QueryVizualizer._color_edge("cost", 0, False)
+        >>> QueryVizualizer._get_case("cost", 0, False)
         'default'
         """
 
