@@ -55,6 +55,18 @@ class DBParser(ABC):
     def enrich_stats(self):
         pass
 
+    def from_query(self, query, con_str, logger=None):
+        with create_engine(con_str).connect() as con:
+            explain_analyze_query = f"{self.query_prefix} {query.replace('%', '%%')}"
+            execution_plan = (
+                con.execute(explain_analyze_query)
+                    .fetchone()
+                    .values()[0][0][self.first_operator_indicator]
+            )
+            if logger:
+                logger.info(execution_plan)
+            return execution_plan
+
     def parse(self, execution_plans):
         self._cleanup_state()
         for execution_plan in listify(execution_plans):
@@ -177,19 +189,6 @@ class DBParser(ABC):
             .sort_values(by='source') \
             .reset_index(drop=True)
         return flow_df
-
-    @classmethod
-    def from_query(cls, query, con_str, logger=None):
-        with create_engine(con_str).connect() as con:
-            explain_analyze_query = f"{cls.explain_prefix} {query.replace('%', '%%')}"
-            execution_plan = (
-                con.execute(explain_analyze_query)
-                .fetchone()
-                .values()[0][0][cls.first_operator_indicator]
-            )
-            if logger:
-                logger.info(execution_plan)
-            return execution_plan
 
 
 if __name__ == '__main__':
