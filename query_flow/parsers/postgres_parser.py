@@ -1,5 +1,7 @@
 from operator import itemgetter
 
+import numpy as np
+
 try:
     from .db_parser import DBParser
 except ImportError:
@@ -7,6 +9,22 @@ except ImportError:
     from db_parser import DBParser  # type: ignore
 
 __all__ = ['PostgresParser']
+
+
+def calc_precentage(series, comsum_series):
+    return series / comsum_series * 100
+
+
+def calc_ratio(df, column_a, column_b):
+    def calc_row(this, other):
+        if this == other:
+            return 1
+        elif this == 0 or other == 0:
+            return np.inf
+        else:
+            return max([this, other]) / min([this, other])
+
+    return df.apply(lambda x: calc_row(x[column_a], x[column_b]), axis=1)
 
 
 class PostgresParser(DBParser):
@@ -300,17 +318,12 @@ class PostgresParser(DBParser):
                 df.loc[i, 'redundent_operation'] = (
                     sum(relevant_ops.actual_rows) == row.actual_rows
                 )
-        #         TODO  max fix
-        df['actual_duration_pct'] = df['actual_duration'] / \
-            df['actual_total_time'] * 100
-        df['estimated_cost_pct'] = df['estimated_cost'] / df['total_cost'] * 100
-        # TODO when is there zero
-        df['actual_plan_rows_ratio'] = df[['actual_rows', 'plan_rows']].apply(
-            lambda x: max(
-                [x.actual_rows, x.plan_rows],
-            ) / min([x.actual_rows, x.plan_rows]) > 5, axis=1,
-        )
-        # df["label_metadata"] = df.operation_type.map(lambda s: f"\nDescription: {self.description_dict.get(s,'')}"if s else "") + df.label_metadata
+
+        df['actual_duration_pct'] = calc_precentage(df['actual_duration'], df['actual_total_time'])
+        df['estimated_cost_pct'] = calc_precentage(df['estimated_cost'], df['total_cost'])
+        df['actual_plan_rows_ratio'] = calc_ratio(df, 'actual_rows', 'plan_rows')
+
+        df["label_metadata"] = df.operation_type.map(lambda s: f"\nDescription: {self.description_dict.get(s,'')}" if s else "") + df.label_metadata
         return df
 
 
