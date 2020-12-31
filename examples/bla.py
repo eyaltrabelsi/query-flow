@@ -3,7 +3,7 @@ from query_flow.vizualizers import query_vizualizer
 
 if __name__ == '__main__':
     query_renderer = query_vizualizer.QueryVizualizer(
-        parser=postgres_parser.PostgresParser())
+        parser=postgres_parser.PostgresParser(execute_query=False))
     query = """
     SELECT titles.title_id
     FROM titles
@@ -17,6 +17,6 @@ if __name__ == '__main__':
         query, con_str='postgresql:///etrabelsi_thesis',
     )
     query_renderer.vizualize(
-        cardinality_df, title='Missing Records in Where Clause', metrics=['actual_rows'],
+        cardinality_df, title='Missing Records in Where Clause', metrics=['plan_rows'],
         open_=False,
     )

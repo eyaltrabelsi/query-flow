@@ -28,7 +28,10 @@ def calc_ratio(df, column_a, column_b):
 
 
 class PostgresParser(DBParser):
-    explain_prefix = 'EXPLAIN(ANALYZE, COSTS, VERBOSE, BUFFERS, FORMAT JSON)'
+    explain_prefix = 'EXPLAIN(COSTS, VERBOSE, FORMAT JSON)'
+    explain_analyze_prefix = 'EXPLAIN(ANALYZE, COSTS, VERBOSE, BUFFERS, FORMAT JSON)'
+    query_prefix = None
+
     node_type_indicator = 'Node Type'
     next_operator_indicator = 'Plans'
     first_operator_indicator = 'Plan'
@@ -42,9 +45,8 @@ class PostgresParser(DBParser):
         'Local Written Blocks', 'Temp Written Blocks', 'Temp Read Blocks',
     ])
 
-    def __init__(self, is_verbose=False, explain_prefix=None):
-        if explain_prefix:
-            self.explain_prefix = explain_prefix
+    def __init__(self, is_verbose=False, execute_query=True):
+        self.query_prefix = self.explain_analyze_prefix if execute_query else self.explain_prefix
 
         super().__init__(is_verbose)
 
@@ -235,11 +237,13 @@ class PostgresParser(DBParser):
             }
 
         def parse_naive_scan(execution_node):
-            return {
+            res = {
                 'label': execution_node.get('Index Name', execution_node.get('Relation Name', '')).title(),
-                'label_metadata': '',
-                'actual_rows': execution_node['Actual Rows'] + execution_node.get('Rows Removed by Filter', 0),
+                'label_metadata': ''
             }
+            if 'Actual Rows' in execution_node:
+                res['actual_rows'] = execution_node['Actual Rows'] + execution_node.get('Rows Removed by Filter', 0)
+            return res
 
         yield parse_where
         yield parse_naive_scan
@@ -252,11 +256,13 @@ class PostgresParser(DBParser):
         ([{'source': 9999, 'target': 1000, 'operation_type': 'Where', 'actual_rows': 3, 'label': 'a*', 'label_metadata': 'Filter condition: people.age = 30'}, {'source': 9998, 'target': 9999, 'operation_type': 'Subquery Scan', 'actual_rows': 3446261, 'label': 'a', 'label_metadata': ''}], 9998)
         """
         def parse_naive_sub_query(execution_node):
-            return {
+            res = {
                 'label': execution_node['Alias'],
                 'label_metadata': '',
-                'actual_rows': execution_node['Actual Rows'] + execution_node.get('Rows Removed by Filter', 0),
             }
+            if 'Actual Rows' in execution_node:
+                res['actual_rows'] = execution_node['Actual Rows'] + execution_node.get('Rows Removed by Filter', 0)
+            return res
 
         def parse_where_sub_query(execution_node):
             return {
@@ -284,44 +290,54 @@ class PostgresParser(DBParser):
             }
 
         def parse_naive_aggregate(execution_node):
-            return {
+            res = {
                 'label': 'AGG',
                 'label_metadata': f"Group key: {itemgetter('Group Key')(execution_node)}\n"
-                                  f"Output: {itemgetter('Output')(execution_node)}",
-                'actual_rows': execution_node['Actual Rows'] + execution_node.get('Rows Removed by Filter', 0),
+                                  f"Output: {itemgetter('Output')(execution_node)}"
             }
+            if 'Actual Rows' in execution_node:
+                res['actual_rows'] = execution_node['Actual Rows'] + execution_node.get('Rows Removed by Filter', 0)
+            return res
 
         yield parse_having
         yield parse_naive_aggregate
 
     def enrich_stats(self, df):
-        df['actual_duration'] = df['actual_total_time']
+
         df['estimated_cost'] = df['total_cost']
-        df['actual_startup_duration'] = df['actual_startup_time']
         df['redundent_operation'] = False
+
+        if 'actual_startup_time' in df.columns:
+            df['actual_startup_duration'] = df['actual_startup_time']
+            df['actual_duration'] = df['actual_total_time']
 
         for i, row in df.iterrows():
 
             relevant_ops = df.query(f"target=={row['source']}")
-            df.loc[i, 'actual_duration'] = row.actual_total_time if relevant_ops.empty else row.actual_total_time - \
-                max(relevant_ops.actual_total_time)
+            if 'actual_startup_time' in df.columns:
+                df.loc[i, 'actual_duration'] = row.actual_total_time if relevant_ops.empty else row.actual_total_time - \
+                    max(relevant_ops.actual_total_time)
+                df.loc[
+                    i, 'actual_startup_duration'] = row.actual_startup_time if relevant_ops.empty else row.actual_startup_time - \
+                                                                                                       max(
+                                                                                                           relevant_ops.total_cost)
+
             df.loc[i, 'estimated_cost'] = row.total_cost if relevant_ops.empty else row.total_cost - \
-                max(relevant_ops.total_cost)
-            df.loc[i, 'actual_startup_duration'] = row.actual_startup_time if relevant_ops.empty else row.actual_startup_time - \
                 max(relevant_ops.total_cost)
 
             if any(op in row.label.split(' ') for op in self.label_replacement.keys()):
                 df.loc[i, 'label'] = self.label_replacement[row.label].join(
                     relevant_ops.label,
                 )
-            if row.label == 'Unique':
+            if row.label == 'Unique' and 'actual_startup_time' in df.columns:
                 df.loc[i, 'redundent_operation'] = (
                     sum(relevant_ops.actual_rows) == row.actual_rows
                 )
 
-        df['actual_duration_pct'] = calc_precentage(df['actual_duration'], df['actual_total_time'])
         df['estimated_cost_pct'] = calc_precentage(df['estimated_cost'], df['total_cost'])
-        df['actual_plan_rows_ratio'] = calc_ratio(df, 'actual_rows', 'plan_rows')
+        if 'actual_startup_time' in df.columns:
+            df['actual_duration_pct'] = calc_precentage(df['actual_duration'], df['actual_total_time'])
+            df['actual_plan_rows_ratio'] = calc_ratio(df, 'actual_rows', 'plan_rows')
 
         df["label_metadata"] = df.operation_type.map(lambda s: f"\nDescription: {self.description_dict.get(s,'')}" if s else "") + df.label_metadata
         return df
