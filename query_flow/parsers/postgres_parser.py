@@ -335,7 +335,7 @@ class PostgresParser(DBParser):
                 df.loc[i, 'label'] = self.label_replacement[row.label].join(
                     relevant_ops.label,
                 )
-            if row.label == 'Unique' and 'actual_startup_time' in df.columns:
+            if row.label in ['Unique', 'Where', 'Having'] and 'actual_startup_time' in df.columns:
                 df.loc[i, 'redundent_operation'] = (
                     sum(relevant_ops.actual_rows) == row.actual_rows
                 )
