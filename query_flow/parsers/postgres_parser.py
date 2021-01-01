@@ -331,13 +331,14 @@ class PostgresParser(DBParser):
             df.loc[i, 'estimated_cost'] = row.total_cost if relevant_ops.empty else row.total_cost - \
                 max(relevant_ops.total_cost)
 
+            if row.operation_type in ['Unique', 'Where', 'Having'] and 'actual_startup_time' in df.columns:
+                df.loc[i, 'redundent_operation'] = (
+                    sum(relevant_ops.actual_rows) == row.actual_rows
+                )
+
             if any(op in row.label.split(' ') for op in self.label_replacement.keys()):
                 df.loc[i, 'label'] = self.label_replacement[row.label].join(
                     relevant_ops.label,
-                )
-            if row.label == 'Unique' and 'actual_startup_time' in df.columns:
-                df.loc[i, 'redundent_operation'] = (
-                    sum(relevant_ops.actual_rows) == row.actual_rows
                 )
 
         df['estimated_cost_pct'] = calc_precentage(
