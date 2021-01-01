@@ -1,7 +1,11 @@
 import hashlib
 import json
+import typing
 from abc import ABC
 from abc import abstractmethod
+from dataclasses import asdict
+from dataclasses import field
+from dataclasses import make_dataclass
 from functools import wraps
 
 import numpy as np
@@ -21,6 +25,7 @@ class DBParser(ABC):
             set(self.description_dict.keys()))
         self.is_compact = is_compact
         self.is_verbose = is_verbose
+        self.parsed_node_class = self._make_parsed_node()
         self._cleanup_state()
 
     @property
@@ -110,7 +115,7 @@ class DBParser(ABC):
             parsed_nodes, source_id = self.strategy_dict[node_type](
                 target_id, execution_node,
             )
-            parsed_nodes = [dict(parsed_node, **{'query_hash': query_hash})
+            parsed_nodes = [dict(asdict(parsed_node), **{'query_hash': query_hash})
                             for parsed_node in parsed_nodes]
 
             self.flow_df = self.flow_df.append(
@@ -156,6 +161,20 @@ class DBParser(ABC):
 
         return parsed_node, source_id
 
+    def _make_parsed_node(self):
+        supported_metrics_fields = [(metric.replace(' ', '_').lower(),
+                                     typing.Any,
+                                     field(default=np.nan, repr=False))
+                                    for metric in self.supported_metrics]
+        return make_dataclass('ParsedNode',
+                              [('source', np.int64),
+                               ('target', np.int64),
+                               ('operation_type', str),
+                               ('label', str),
+                               ('label_metadata', str),
+                               ('node_hash', str, field(repr=False)),
+                               *supported_metrics_fields])
+
     @staticmethod
     def _hash_execution_plan(execution_plan):
         representation = json.dumps(execution_plan)
@@ -169,7 +188,7 @@ class DBParser(ABC):
             defaults_attrs, source_id = self._parse_default(
                 target_id, execution_node, specific_attrs,
             )
-            return [{**defaults_attrs, **specific_attrs}], source_id
+            return [self.parsed_node_class(**{**defaults_attrs, **specific_attrs})], source_id
 
         return parse
 
@@ -184,10 +203,10 @@ class DBParser(ABC):
                 defaults_attrs, source_id = self._parse_default(
                     target_id, execution_node, filter_attrs,
                 )
-                filter_node = {
+                filter_node = self.parsed_node_class(**{
                     **defaults_attrs,
                     **filter_attrs,
-                }
+                })
                 target_id = source_id
 
             clause_attrs = clause_func(execution_node)
@@ -195,10 +214,10 @@ class DBParser(ABC):
                 target_id, execution_node, clause_attrs,
             )
 
-            non_filter_node = {
+            non_filter_node = self.parsed_node_class(**{
                 **defaults_attrs,
                 **clause_attrs,
-            }
+            })
             parsed_node = [filter_node, non_filter_node] if self.filter_indicator in execution_node else [
                 non_filter_node,
             ]

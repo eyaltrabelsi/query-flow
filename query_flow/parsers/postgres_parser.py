@@ -1,5 +1,4 @@
 import logging
-
 from operator import itemgetter
 
 import numpy as np
@@ -108,7 +107,7 @@ class PostgresParser(DBParser):
         """
         >>> p = PostgresParser(True)
         >>> p.parse_limit(1000, {"Node Type": "Limit", "Actual Rows": 5})
-        ([{'source': 9999, 'target': 1000, 'operation_type': 'Limit', 'actual_rows': 5, 'label': 'LIMIT 5', 'label_metadata': 'LIMIT: 5'}], 9999)
+        ([ParsedNode(source=9999, target=1000, operation_type='Limit', label='LIMIT 5', label_metadata='LIMIT: 5')], 9999)
         """
         return {
             'label': f"LIMIT {execution_node['Actual Rows']}",
@@ -120,7 +119,7 @@ class PostgresParser(DBParser):
         """
         >>> p = PostgresParser(True)
         >>> p.parse_sort(1000, {"Node Type": "Sort", "Sort Key": ["crew.title_id"], "Sort Method": "quicksort", "Sort Space Used": 128, "Sort Space Type": "Memory"})
-        ([{'source': 9999, 'target': 1000, 'operation_type': 'Sort', 'label': 'SORT', 'label_metadata': "Sort Space Type: Memory\\nSort Space Used: 128\\nSort Method: quicksort\\nSort Key: ['crew.title_id']\\n"}], 9999)
+        ([ParsedNode(source=9999, target=1000, operation_type='Sort', label='SORT', label_metadata="Sort Space Type: Memory\\nSort Space Used: 128\\nSort Method: quicksort\\nSort Key: ['crew.title_id']\\n")], 9999)
         """
 
         return {
@@ -136,7 +135,7 @@ class PostgresParser(DBParser):
         """
         >>> p = PostgresParser(True)
         >>> p.parse_append(1000, {"Node Type": "Append"})
-        ([{'source': 9999, 'target': 1000, 'operation_type': 'Append', 'label': 'UNION ALL', 'label_metadata': ''}], 9999)
+        ([ParsedNode(source=9999, target=1000, operation_type='Append', label='UNION ALL', label_metadata='')], 9999)
         """
         return {
             'label': 'UNION ALL',
@@ -148,7 +147,7 @@ class PostgresParser(DBParser):
         """
         >>> p = PostgresParser(True)
         >>> p.parse_window(1000, {"Node Type": "WindowAgg"})
-        ([{'source': 9999, 'target': 1000, 'operation_type': 'WindowAgg', 'label': 'WINDOW', 'label_metadata': ''}], 9999)
+        ([ParsedNode(source=9999, target=1000, operation_type='WindowAgg', label='WINDOW', label_metadata='')], 9999)
         """
         return {
             'label': 'WINDOW',
@@ -160,7 +159,7 @@ class PostgresParser(DBParser):
         """
         >>> p = PostgresParser(True)
         >>> p.parse_unique(1000, {"Node Type": "Unique"})
-        ([{'source': 9999, 'target': 1000, 'operation_type': 'Unique', 'label': 'Unique', 'label_metadata': ''}], 9999)
+        ([ParsedNode(source=9999, target=1000, operation_type='Unique', label='Unique', label_metadata='')], 9999)
         """
         return {
             'label': 'Unique',
@@ -172,7 +171,7 @@ class PostgresParser(DBParser):
         """
         >>> p = PostgresParser(True)
         >>> p.parse_result(1000, {"Node Type": "Result"})
-        ([{'source': 9999, 'target': 1000, 'operation_type': 'Result', 'label': 'Result', 'label_metadata': ''}], 9999)
+        ([ParsedNode(source=9999, target=1000, operation_type='Result', label='Result', label_metadata='')], 9999)
         """
         return {
             'label': 'Result',
@@ -184,7 +183,7 @@ class PostgresParser(DBParser):
         """
         >>> p = PostgresParser(True)
         >>> p.parse_gather(1000, {"Node Type": "Gather"})
-        ([{'source': 9999, 'target': 1000, 'operation_type': 'Gather', 'label': 'Gather', 'label_metadata': ''}], 9999)
+        ([ParsedNode(source=9999, target=1000, operation_type='Gather', label='Gather', label_metadata='')], 9999)
         """
         return {
             'label': 'Gather',
@@ -196,7 +195,7 @@ class PostgresParser(DBParser):
         """
         >>> p = PostgresParser(True)
         >>> p.parse_hash(1000, {"Node Type": "Hash", "Parent Relationship": "Inner"})
-        ([{'source': 9999, 'target': 1000, 'operation_type': 'Hash', 'label': 'HASH', 'label_metadata': ''}], 9999)
+        ([ParsedNode(source=9999, target=1000, operation_type='Hash', label='HASH', label_metadata='')], 9999)
         """
         return {
             'label': 'HASH',
@@ -209,10 +208,10 @@ class PostgresParser(DBParser):
         >>> p = PostgresParser(True)
 
         >>> p.parse_join(1000, {"Node Type": "Nested Loop",  "Join Type": "Inner", "Join Filter": "(crew.title_id = titles.title_id)"})
-        ([{'source': 9999, 'target': 1000, 'operation_type': 'Nested Loop', 'label': 'JOIN', 'label_metadata': "Join Filter ('Inner', '(crew.title_id = titles.title_id)')"}], 9999)
+        ([ParsedNode(source=9999, target=1000, operation_type='Nested Loop', label='JOIN', label_metadata="Join Filter ('Inner', '(crew.title_id = titles.title_id)')")], 9999)
 
         >>> p.parse_join(1000, {"Node Type": "Hash Join",  "Join Type": "Inner", "Join Filter": "(crew.person_id = people.person_id)"})
-        ([{'source': 9998, 'target': 1000, 'operation_type': 'Hash Join', 'label': 'JOIN', 'label_metadata': "Join Filter ('Inner', '(crew.person_id = people.person_id)')"}], 9998)
+        ([ParsedNode(source=9998, target=1000, operation_type='Hash Join', label='JOIN', label_metadata="Join Filter ('Inner', '(crew.person_id = people.person_id)')")], 9998)
         """
         cond_key = [
             key for key in execution_node.keys(
@@ -229,7 +228,7 @@ class PostgresParser(DBParser):
         """
         >>> p = PostgresParser(True)
         >>> p.parse_scan(1000, {"Node Type": "Seq Scan", "Relation Name": "people", "Actual Rows": 3, "Filter": "people.age = 30", "Rows Removed by Filter": 3446258})
-        ([{'source': 9999, 'target': 1000, 'operation_type': 'Where', 'actual_rows': 3, 'label': 'People*', 'label_metadata': 'Filter condition: people.age = 30'}, {'source': 9998, 'target': 9999, 'operation_type': 'Seq Scan', 'actual_rows': 3446261, 'label': 'People', 'label_metadata': ''}], 9998)
+        ([ParsedNode(source=9999, target=1000, operation_type='Where', label='People*', label_metadata='Filter condition: people.age = 30'), ParsedNode(source=9998, target=9999, operation_type='Seq Scan', label='People', label_metadata='')], 9998)
         """
 
         def parse_where(execution_node):
@@ -257,7 +256,7 @@ class PostgresParser(DBParser):
         """
         >>> p = PostgresParser(True)
         >>> p.parse_subquery(1000, {"Node Type": "Subquery Scan", "Actual Rows": 3, "Filter": "people.age = 30", "Rows Removed by Filter": 3446258, "Alias": "a"})
-        ([{'source': 9999, 'target': 1000, 'operation_type': 'Where', 'actual_rows': 3, 'label': 'a*', 'label_metadata': 'Filter condition: people.age = 30'}, {'source': 9998, 'target': 9999, 'operation_type': 'Subquery Scan', 'actual_rows': 3446261, 'label': 'a', 'label_metadata': ''}], 9998)
+        ([ParsedNode(source=9999, target=1000, operation_type='Where', label='a*', label_metadata='Filter condition: people.age = 30'), ParsedNode(source=9998, target=9999, operation_type='Subquery Scan', label='a', label_metadata='')], 9998)
         """
 
         def parse_naive_sub_query(execution_node):
@@ -285,10 +284,9 @@ class PostgresParser(DBParser):
         """
         >>> p = PostgresParser(True)
         >>> p.parse_aggregate(9996, {"Node Type": "Hashaggregate", "Actual Rows": 3, "Filter": "(count(1) > 5)", "Rows Removed by Filter": 34,  "Group Key": ["titles.genres"], "Output": ["titles.genres"]})
-        ([{'source': 9999, 'target': 9996, 'operation_type': 'Having', 'actual_rows': 3, 'label': 'AGG*', 'label_metadata': 'Filter condition: (count(1) > 5)'}, {'source': 9998, 'target': 9999, 'operation_type': 'Hashaggregate', 'actual_rows': 37, 'label': 'AGG', 'label_metadata': "Group key: ['titles.genres']\\nOutput: ['titles.genres']"}], 9998)
+        ([ParsedNode(source=9999, target=9996, operation_type='Having', label='AGG*', label_metadata='Filter condition: (count(1) > 5)'), ParsedNode(source=9998, target=9999, operation_type='Hashaggregate', label='AGG', label_metadata="Group key: ['titles.genres']\\nOutput: ['titles.genres']")], 9998)
         """
 
-        # todo FIX STR repreesntation
         def parse_having(execution_node):
             return {
                 'label': 'AGG*',
@@ -356,7 +354,7 @@ class PostgresParser(DBParser):
         return df
 
     def clean_cache(self):
-        logging.warning("Currently cache cleaning is not supported")
+        logging.warning('Currently cache cleaning is not supported')
 
 
 if __name__ == '__main__':
