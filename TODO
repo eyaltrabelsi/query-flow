@@ -1,14 +1,9 @@
--  Support multiple queries coloring
 
 - I have issue if merge join and hash join but will fix it later
 - the first issue is that i need to remove the label if they are the same for that i need the node hash
 - Fix parsing unitests
 
 - Support compact for multiple queries
-
-- clean database cache
-
-- Add where capabilities to redundent
 
 - Unique work wrong with verbose=False 4. Identifying Ineffective operations.ipynb
 
@@ -19,6 +14,8 @@
 - support terminal command
 
 - Flow abstraction and refactor enrichment_stats
+
+- refactor logging
 
 - datagen refactor
 
