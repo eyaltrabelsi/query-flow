@@ -93,9 +93,8 @@ class DBParser(ABC):
         self._cleanup_state()
         for execution_plan in execution_plans:
             self.clean_cache()
-            self.max_id -= 1
             self.parse_node(execution_plan,
-                            target_id=self.max_id,
+                            target_id=np.nan,
                             query_hash=DBParser._hash_execution_plan(execution_plan))
 
         flow_df = DBParser.align_source_target_ids(self.flow_df)
@@ -115,6 +114,7 @@ class DBParser(ABC):
             parsed_nodes, source_id = self.strategy_dict[node_type](
                 target_id, execution_node,
             )
+            # TODO move this target_id here is not accurate all the time
             parsed_nodes = [dict(asdict(parsed_node), **{'query_hash': query_hash})
                             for parsed_node in parsed_nodes]
 
@@ -130,7 +130,6 @@ class DBParser(ABC):
                 self.parse_node(next_execution_node, target_id, query_hash)
 
     def _get_hash(self, execution_node, specific_attrs):
-        # TODO fix merge join + hash join to be together
         representation = execution_node[self.node_type_indicator]
         if specific_attrs:
             representation += f"{specific_attrs['label']} {specific_attrs['label_metadata']}"
@@ -148,8 +147,10 @@ class DBParser(ABC):
 
         current_hash = self._get_hash(execution_node, specific_attrs)
         source_id = self._get_next_id(current_hash)
+
         parsed_node = {
-            'source': source_id, 'target': target_id,
+            'source': source_id,
+            'target': target_id,
             'operation_type': execution_node[self.node_type_indicator],
             'node_hash': current_hash
         }
@@ -228,10 +229,20 @@ class DBParser(ABC):
 
     @staticmethod
     def align_source_target_ids(flow_df):
-        min_ = min(set(flow_df['source']).union(set(flow_df['target'])))
+        ids = set(flow_df['source'].dropna()).union(
+            set(flow_df['target'].dropna()))
+
+        # Give last operators the biggest id so no reuse of the same label later
+        max_ = max(ids) + 1
+        for index, _ in flow_df[flow_df['target'].isna()].iterrows():
+            flow_df.loc[index, 'target'] = max_
+            max_ += 1
+
+        # Normalize ids to start with zero
+        min_ = min(ids)
         flow_df = flow_df.assign(
-            target=lambda x: x.target.map(lambda y: y - min_),
-            source=lambda x: x.source.map(lambda y: y - min_),
+            target=lambda x: x.target.map(lambda y: y - min_).astype(int),
+            source=lambda x: x.source.map(lambda y: y - min_).astype(int),
         ) \
             .sort_values(by='source') \
             .reset_index(drop=True)

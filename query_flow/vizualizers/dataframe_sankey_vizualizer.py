@@ -51,7 +51,8 @@ class DataFrameSankeyVizualizer(ABC):
             valuesuffix=flow_df['variable'].map(self.supported_metrics),
             node=dict(
                 pad=200,
-                label=flow_df['label'].unique(),
+                label=flow_df.drop_duplicates(['node_hash'])[
+                    'label'] if self.parser.is_compact else flow_df['label'],
                 color=flow_df['color_node'],
             ),
             link=dict(

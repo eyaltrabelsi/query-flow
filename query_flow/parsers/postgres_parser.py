@@ -208,16 +208,16 @@ class PostgresParser(DBParser):
         >>> p = PostgresParser(True)
 
         >>> p.parse_join(1000, {"Node Type": "Nested Loop",  "Join Type": "Inner", "Join Filter": "(crew.title_id = titles.title_id)"})
-        ([ParsedNode(source=9999, target=1000, operation_type='Nested Loop', label='JOIN', label_metadata="Join Filter ('Inner', '(crew.title_id = titles.title_id)')")], 9999)
+        ([ParsedNode(source=9999, target=1000, operation_type='Nested Loop', label='JOIN', label_metadata='Inner join with (crew.title_id = titles.title_id)')], 9999)
 
         >>> p.parse_join(1000, {"Node Type": "Hash Join",  "Join Type": "Inner", "Join Filter": "(crew.person_id = people.person_id)"})
-        ([ParsedNode(source=9998, target=1000, operation_type='Hash Join', label='JOIN', label_metadata="Join Filter ('Inner', '(crew.person_id = people.person_id)')")], 9998)
+        ([ParsedNode(source=9998, target=1000, operation_type='Hash Join', label='JOIN', label_metadata='Inner join with (crew.person_id = people.person_id)')], 9998)
         """
         cond_key = [
             key for key in execution_node.keys(
             ) if 'Cond' in key or 'Join Filter' == key
         ]
-        metadata = f"{cond_key[0]} {itemgetter('Join Type', cond_key[0])(execution_node)}" if cond_key else ''
+        metadata = f"{' join with '.join(itemgetter('Join Type', cond_key[0])(execution_node))}"
         return {
             'label': 'JOIN',
             'label_metadata': metadata,
