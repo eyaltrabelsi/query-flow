@@ -1,49 +1,44 @@
 {
-  'Node Type': 'Gather',
-  'Actual Rows': 558,
-  ...
-  'Plans': [
+  "Node Type": "Gather",
+  "Actual Rows": 558,
+  "Plans": [
     {
-      'Node Type': 'Hash Join',
-      'Join Type': 'Inner',
-      'Actual Rows': 186,
-      'Hash Cond': '(titles.title_id = crew.title_id)',
-      ...
-      'Plans': [
+      "Node Type": "Hash Join",
+      "Join Type": "Inner",
+      "Actual Rows": 186,
+      "Hash Cond": "(titles.title_id = crew.title_id)",
+      "Plans": [
         {
-          'Node Type': 'Seq Scan',
-          'Relation Name': 'titles',
-          'Actual Rows': 489076,
-          'Filter': "(titles.genres ~~ '%Comedy%'::text)",
-          'Rows Removed by Filter': 1890158,
+          "Node Type": "Seq Scan",
+          "Relation Name": "titles",
+          "Actual Rows": 489076,
+
+          "Rows Removed by Filter": 1890158
         },
         {
-          'Node Type': 'Hash',
-          'Actual Rows': 565,
-          'Plans': [
+          "Node Type": "Hash",
+          "Actual Rows": 565,
+          "Plans": [
             {
-              'Node Type': 'Hash Join',
-              'Join Type': 'Inner',
-              'Actual Rows': 565,
-              'Hash Cond': '(crew.person_id = people.person_id)',
-              'Plans': [
+              "Node Type": "Hash Join",
+              "Join Type": "Inner",
+              "Actual Rows": 565,
+              "Hash Cond": "(crew.person_id = people.person_id)",
+              "Plans": [
                 {
-                  'Node Type': 'Seq Scan',
-                  'Relation Name': 'crew',
-                  'Actual Rows': 13651901,
-                  ...
+                  "Node Type": "Seq Scan",
+                  "Relation Name": "crew",
+                  "Actual Rows": 13651901
                 },
                 {
-                  'Node Type': 'Hash',
-                  'Actual Rows': 3,
-                  ...
-                  'Plans': [
+                  "Node Type": "Hash",
+                  "Actual Rows": 3,
+                  "Plans": [
                     {
-                      'Node Type': 'Seq Scan',
-                      'Relation Name': 'people',
-                      'Actual Rows': 3,
-                      'Filter': '(people.name = ANY (\'{"Owen Wilson","Adam Sandler","Jason Segel"}\'::text[]))',
-                      'Rows Removed by Filter': 3446258
+                      "Node Type": "Seq Scan",
+                      "Relation Name": "people",
+                      "Actual Rows": 3,
+                      "Rows Removed by Filter": 3446258
                     }
                   ]
                 }

@@ -1,13 +1,31 @@
 -  Support multiple queries coloring
+
+- I have issue if merge join and hash join but will fix it later
+- the first issue is that i need to remove the label if they are the same for that i need the node hash
+- Fix parsing unitests
+
+- Support compact for multiple queries
+
+- clean database cache
+
+- Add where capabilities to redundent
+
+- Unique work wrong with verbose=False 4. Identifying Ineffective operations.ipynb
+
 -  Support more operations LIKE exists  BitmapOr Bitmap And  CTEScan
-- Flow abstraction
--  Support multiple flows grouping  either avg/median/max/min
-- Unique work wrong with verbose=False
-- datagen refactor
+
+-  Support multiple flows grouping  either avg/median/max/min compact representation
+
 - support terminal command
-- refactor configuration code
-- refactor enrichment_stats
+
+- Flow abstraction and refactor enrichment_stats
+
+- datagen refactor
+
 - UI Bug due to .replace(0, 1)
+
 - Reademe
+
 - Support for pypi
+
 - Creating new parser

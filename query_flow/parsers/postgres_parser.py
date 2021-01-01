@@ -44,13 +44,41 @@ class PostgresParser(DBParser):
         'Local Hit Blocks', 'Local Dirtied Blocks', 'Local Read Blocks',
         'Local Written Blocks', 'Temp Written Blocks', 'Temp Read Blocks',
     ])
+    verbose_ops = {'Hash', 'Gather', 'Gather Merge', 'Sort', 'WindowAgg', }
 
-    def __init__(self, is_verbose=False, execute_query=True):
+    description_dict = {
+        'Append': 'Used in a UNION to merge multiple record sets by appending them together.',
+        'Limit': 'Returns a specified number of rows from a record set.',
+        'Hash Join': 'Joins to record sets by hashing one of them (using a Hash Scan).',
+        'Aggregate': 'Groups records together based on a GROUP BY or aggregate function (e.g. sum()).',
+        'Hashaggregate': 'Groups records together based on a GROUP BY or aggregate function (e.g. sum()). Hash Aggregate uses a hash to first organize the records by a key.',
+        'Seq Scan': 'Finds relevant records by sequentially scanning the input record set. When reading from a table, Seq Scans (unlike Index Scans) perform a single read operation (only the table is read).',
+        'Where': 'Filter relation to hold only relevant records.',
+        'Having': 'Filter relation to hold only relevant records.',
+        'Sort': 'Sorts a record set based on the specified sort key.',
+        'Nested Loop': 'Merges two record sets by looping through every record in the first set and trying to find a match in the second set. All matching records are returned.',
+        'Merge Join': 'Merges two record sets by first sorting them on a join key.',
+        'Hash': 'Generates a hash table from the records in the input recordset. Hash is used by Hash Join.',
+        'Index Scan': 'Finds relevant records based on an Index. Index Scans perform 2 read operations: one to read the index and another to read the actual value from the table.',
+        'Bitmap Heap Scan': 'Searches through the pages returned by the Bitmap Index Scan for relevant rows.',
+        'Bitmap Index Scan': 'Uses a Bitmap Index (index which uses 1 bit per page) to find all relevant pages. Results of this node are fed to the Bitmap Heap Scan.',
+        'Index Only Scan': 'Finds relevant records based on an Index. Index Only Scans perform a single read operation from the index and do not read from the corresponding table.',
+        'Gather': 'Collect relevant records from the workers.',
+        'Gather Merge': 'Collect relevant records from the workers in ordered manner.',
+        'Unique': 'Remove duplicated rows from a record set.',
+        'WindowAgg': 'Calculate window function according to the OVER statements.',
+        'Result': 'A Relation primitive',
+        'Subquery Scan': 'A Subquery Scan is for scanning the output of a sub-query in the range table.'
+    }
+
+    def __init__(self, is_verbose=False, is_compact=False, execute_query=True):
         self.query_prefix = self.explain_analyze_prefix if execute_query else self.explain_prefix
 
-        super().__init__(is_verbose)
+        super().__init__(is_verbose, is_compact)
 
-        self.strategy_dict = {
+    @property
+    def strategy_dict(self):
+        return {
             'Limit': self.parse_limit,
             'Seq Scan': self.parse_scan,
             'Subquery Scan': self.parse_subquery,
@@ -71,34 +99,6 @@ class PostgresParser(DBParser):
             'Unique': self.parse_unique,
             'Result': self.parse_result,
             'WindowAgg': self.parse_window,
-        }
-
-        self.verbose_ops = {
-            'Hash', 'Gather',
-            'Gather Merge', 'Sort', 'WindowAgg',
-        }
-        self.description_dict = {
-            'Append': 'Used in a UNION to merge multiple record sets by appending them together.',
-            'Limit': 'Returns a specified number of rows from a record set.',
-            'Hash Join': 'Joins to record sets by hashing one of them (using a Hash Scan).',
-            'Aggregate': 'Groups records together based on a GROUP BY or aggregate function (e.g. sum()).',
-            'Hashaggregate': 'Groups records together based on a GROUP BY or aggregate function (e.g. sum()). Hash Aggregate uses a hash to first organize the records by a key.',
-            'Seq Scan': 'Finds relevant records by sequentially scanning the input record set. When reading from a table, Seq Scans (unlike Index Scans) perform a single read operation (only the table is read).',
-            'Where': 'Filter relation to hold only relevant records.',
-            'Having': 'Filter relation to hold only relevant records.',
-            'Sort': 'Sorts a record set based on the specified sort key.',
-            'Nested Loop': 'Merges two record sets by looping through every record in the first set and trying to find a match in the second set. All matching records are returned.',
-            'Merge Join': 'Merges two record sets by first sorting them on a join key.',
-            'Hash': 'Generates a hash table from the records in the input recordset. Hash is used by Hash Join.',
-            'Index Scan': 'Finds relevant records based on an Index. Index Scans perform 2 read operations: one to read the index and another to read the actual value from the table.',
-            'Bitmap Heap Scan': 'Searches through the pages returned by the Bitmap Index Scan for relevant rows.',
-            'Bitmap Index Scan': 'Uses a Bitmap Index (index which uses 1 bit per page) to find all relevant pages. Results of this node are fed to the Bitmap Heap Scan.',
-            'Index Only Scan': 'Finds relevant records based on an Index. Index Only Scans perform a single read operation from the index and do not read from the corresponding table.',
-            'Gather': 'Collect relevant records from the workers.',
-            'Gather Merge': 'Collect relevant records from the workers in ordered manner.',
-            'Unique': 'Remove duplicated rows from a record set.',
-            'WindowAgg': 'Calculate window function according to the OVER statements.',
-            'Result': 'A Relation primitive',
         }
 
     @DBParser.parse_default_decor
@@ -229,6 +229,7 @@ class PostgresParser(DBParser):
         >>> p.parse_scan(1000, {"Node Type": "Seq Scan", "Relation Name": "people", "Actual Rows": 3, "Filter": "people.age = 30", "Rows Removed by Filter": 3446258})
         ([{'source': 9999, 'target': 1000, 'operation_type': 'Where', 'actual_rows': 3, 'label': 'People*', 'label_metadata': 'Filter condition: people.age = 30'}, {'source': 9998, 'target': 9999, 'operation_type': 'Seq Scan', 'actual_rows': 3446261, 'label': 'People', 'label_metadata': ''}], 9998)
         """
+
         def parse_where(execution_node):
             return {
                 'label': f'{execution_node["Relation Name"].title()}*',
@@ -242,7 +243,8 @@ class PostgresParser(DBParser):
                 'label_metadata': ''
             }
             if 'Actual Rows' in execution_node:
-                res['actual_rows'] = execution_node['Actual Rows'] + execution_node.get('Rows Removed by Filter', 0)
+                res['actual_rows'] = execution_node['Actual Rows'] + \
+                    execution_node.get('Rows Removed by Filter', 0)
             return res
 
         yield parse_where
@@ -255,13 +257,15 @@ class PostgresParser(DBParser):
         >>> p.parse_subquery(1000, {"Node Type": "Subquery Scan", "Actual Rows": 3, "Filter": "people.age = 30", "Rows Removed by Filter": 3446258, "Alias": "a"})
         ([{'source': 9999, 'target': 1000, 'operation_type': 'Where', 'actual_rows': 3, 'label': 'a*', 'label_metadata': 'Filter condition: people.age = 30'}, {'source': 9998, 'target': 9999, 'operation_type': 'Subquery Scan', 'actual_rows': 3446261, 'label': 'a', 'label_metadata': ''}], 9998)
         """
+
         def parse_naive_sub_query(execution_node):
             res = {
                 'label': execution_node['Alias'],
                 'label_metadata': '',
             }
             if 'Actual Rows' in execution_node:
-                res['actual_rows'] = execution_node['Actual Rows'] + execution_node.get('Rows Removed by Filter', 0)
+                res['actual_rows'] = execution_node['Actual Rows'] + \
+                    execution_node.get('Rows Removed by Filter', 0)
             return res
 
         def parse_where_sub_query(execution_node):
@@ -282,6 +286,7 @@ class PostgresParser(DBParser):
         ([{'source': 9999, 'target': 9996, 'operation_type': 'Having', 'actual_rows': 3, 'label': 'AGG*', 'label_metadata': 'Filter condition: (count(1) > 5)'}, {'source': 9998, 'target': 9999, 'operation_type': 'Hashaggregate', 'actual_rows': 37, 'label': 'AGG', 'label_metadata': "Group key: ['titles.genres']\\nOutput: ['titles.genres']"}], 9998)
         """
 
+        # todo FIX STR repreesntation
         def parse_having(execution_node):
             return {
                 'label': 'AGG*',
@@ -296,7 +301,8 @@ class PostgresParser(DBParser):
                                   f"Output: {itemgetter('Output')(execution_node)}"
             }
             if 'Actual Rows' in execution_node:
-                res['actual_rows'] = execution_node['Actual Rows'] + execution_node.get('Rows Removed by Filter', 0)
+                res['actual_rows'] = execution_node['Actual Rows'] + \
+                    execution_node.get('Rows Removed by Filter', 0)
             return res
 
         yield parse_having
@@ -319,8 +325,8 @@ class PostgresParser(DBParser):
                     max(relevant_ops.actual_total_time)
                 df.loc[
                     i, 'actual_startup_duration'] = row.actual_startup_time if relevant_ops.empty else row.actual_startup_time - \
-                                                                                                       max(
-                                                                                                           relevant_ops.total_cost)
+                    max(
+                    relevant_ops.total_cost)
 
             df.loc[i, 'estimated_cost'] = row.total_cost if relevant_ops.empty else row.total_cost - \
                 max(relevant_ops.total_cost)
@@ -334,15 +340,20 @@ class PostgresParser(DBParser):
                     sum(relevant_ops.actual_rows) == row.actual_rows
                 )
 
-        df['estimated_cost_pct'] = calc_precentage(df['estimated_cost'], df['total_cost'])
+        df['estimated_cost_pct'] = calc_precentage(
+            df['estimated_cost'], df['total_cost'])
         if 'actual_startup_time' in df.columns:
-            df['actual_duration_pct'] = calc_precentage(df['actual_duration'], df['actual_total_time'])
-            df['actual_plan_rows_ratio'] = calc_ratio(df, 'actual_rows', 'plan_rows')
+            df['actual_duration_pct'] = calc_precentage(
+                df['actual_duration'], df['actual_total_time'])
+            df['actual_plan_rows_ratio'] = calc_ratio(
+                df, 'actual_rows', 'plan_rows')
 
-        df["label_metadata"] = df.operation_type.map(lambda s: f"\nDescription: {self.description_dict.get(s,'')}" if s else "") + df.label_metadata
+        df['label_metadata'] = df.operation_type.map(
+            lambda s: f"\nDescription: {self.description_dict.get(s,'')}" if s else '') + df.label_metadata
         return df
 
 
 if __name__ == '__main__':
     import doctest
+
     doctest.testmod()

@@ -3,20 +3,36 @@ from query_flow.vizualizers import query_vizualizer
 
 if __name__ == '__main__':
     query_renderer = query_vizualizer.QueryVizualizer(
-        parser=postgres_parser.PostgresParser(execute_query=False))
-    query = """
+        parser=postgres_parser.PostgresParser())
+
+    # query1 = """
+    #     SELECT titles.title_id
+    #     FROM titles
+    #     WHERE genres != 'asfasfsaf'
+    #     """
+    query1 = """
     SELECT titles.title_id
     FROM titles
-    INNER JOIN crew ON crew.title_id = titles.title_id
-    INNER JOIN people ON people.person_id = crew.person_id
-    WHERE genres like '%Comedy%'
-      AND name in ('Owen Wilson', 'Adam Sandler', 'Jason Segel')
-
+    WHERE genres = 'Comedy'
     """
-    cardinality_df = query_renderer.get_cardinality_df(
-        query, con_str='postgresql:///etrabelsi_thesis',
-    )
+
+    query2 = """
+    SELECT titles.title_id
+    FROM titles
+    WHERE genres = 'Comedy'
+    UNION
+    SELECT titles.title_id
+    FROM titles
+    WHERE genres = 'Action'
+    """
+
+    flow_df = query_renderer.get_flow_df(
+        [query1, query2], con_str='postgresql:///etrabelsi_thesis')
+
+    # flow_df = query_renderer.get_flow_df(
+    #     [query1], con_str='postgresql:///etrabelsi_thesis')
     query_renderer.vizualize(
-        cardinality_df, title='Missing Records in Where Clause', metrics=['plan_rows'],
+        # , "actual_duration"
+        flow_df, title='Missing Records in Where Clause', metrics=['actual_rows'],
         open_=False,
     )

@@ -1,4 +1,5 @@
 import hashlib
+import json
 from abc import ABC
 from abc import abstractmethod
 from functools import wraps
@@ -10,21 +11,32 @@ from sqlalchemy import create_engine
 __all__ = ['DBParser']
 
 
-def listify(val):
-    if type(val) in [str, int, float, dict]:
-        return [val]
-    return val
-
-
 class DBParser(ABC):
     label_replacement = {'UNION': ' U ', 'JOIN': ' ⋈ ', 'UNION ALL': ' U '}
     required_parsed_attr = frozenset(['label', 'label_metadata'])
     max_supported_nodes = 10000
 
-    # TODO is_verbose all_operations, group operations
-    def __init__(self, is_verbose=False):
+    def __init__(self, is_verbose=False, is_compact=False):
+        assert set(self.strategy_dict.keys()).issubset(
+            set(self.description_dict.keys()))
+        self.is_compact = is_compact
         self.is_verbose = is_verbose
         self._cleanup_state()
+
+    @property
+    @abstractmethod
+    def verbose_ops(self):
+        pass
+
+    @property
+    @abstractmethod
+    def strategy_dict(self):
+        pass
+
+    @property
+    @abstractmethod
+    def description_dict(self):
+        pass
 
     @property
     @abstractmethod
@@ -60,28 +72,32 @@ class DBParser(ABC):
             explain_analyze_query = f"{self.query_prefix} {query.replace('%', '%%')}"
             execution_plan = (
                 con.execute(explain_analyze_query)
-                    .fetchone()
-                    .values()[0][0][self.first_operator_indicator]
+                .fetchone()
+                .values()[0][0][self.first_operator_indicator]
             )
             if logger:
                 logger.info(execution_plan)
             return execution_plan
 
     def parse(self, execution_plans):
-        self._cleanup_state()
-        for execution_plan in listify(execution_plans):
-            self.parse_node(execution_plan, target_id=self.max_id)
 
-        cardinality_df = DBParser.align_source_target_ids(self.cardinality_df)
-        cardinality_df = self.enrich_stats(cardinality_df)
-        return cardinality_df
+        self._cleanup_state()
+        for execution_plan in execution_plans:
+            self.max_id -= 1
+            self.parse_node(execution_plan,
+                            target_id=self.max_id,
+                            query_hash=DBParser._hash_execution_plan(execution_plan))
+
+        flow_df = DBParser.align_source_target_ids(self.flow_df)
+        flow_df = self.enrich_stats(flow_df)
+        return flow_df
 
     def _cleanup_state(self):
         self.label_to_id_dict = {}
-        self.cardinality_df = pd.DataFrame({})
+        self.flow_df = pd.DataFrame({})
         self.max_id = np.int64(self.max_supported_nodes)
 
-    def parse_node(self, execution_node, target_id):
+    def parse_node(self, execution_node, target_id, query_hash):
         source_id = None
 
         node_type = execution_node[self.node_type_indicator]
@@ -89,7 +105,10 @@ class DBParser(ABC):
             parsed_nodes, source_id = self.strategy_dict[node_type](
                 target_id, execution_node,
             )
-            self.cardinality_df = self.cardinality_df.append(
+            parsed_nodes = [dict(parsed_node, **{'query_hash': query_hash})
+                            for parsed_node in parsed_nodes]
+
+            self.flow_df = self.flow_df.append(
                 parsed_nodes, ignore_index=True,
             )
 
@@ -98,18 +117,17 @@ class DBParser(ABC):
             target_id = source_id or target_id
 
             for next_execution_node in execution_node[self.next_operator_indicator]:
-                self.parse_node(next_execution_node, target_id)
+                self.parse_node(next_execution_node, target_id, query_hash)
 
-    def _get_next_id(self, execution_node, target_id, specific_attrs):
+    def _get_hash(self, execution_node, specific_attrs):
+        # TODO fix merge join + hash join to be together
+        representation = execution_node[self.node_type_indicator]
+        if specific_attrs:
+            representation += f"{specific_attrs['label']} {specific_attrs['label_metadata']}"
+        return hashlib.sha224(representation.encode()).hexdigest()
 
-        def get_hash(execution_node, target_id, specific_attrs):
-            representation = f"{execution_node[self.node_type_indicator]} {target_id} {specific_attrs['label']} {specific_attrs['label_metadata']}"
-            return hashlib.sha224(representation.encode()).hexdigest()
-
-        # TODO compact
-        hash_node = get_hash(execution_node, target_id, specific_attrs)
-
-        if hash_node not in self.label_to_id_dict:
+    def _get_next_id(self, hash_node):
+        if hash_node not in self.label_to_id_dict or not self.is_compact:
             self.max_id -= 1
             self.label_to_id_dict[hash_node] = self.max_id
 
@@ -118,12 +136,12 @@ class DBParser(ABC):
     def _parse_default(self, target_id, execution_node, specific_attrs):
         assert all(attr in specific_attrs for attr in self.required_parsed_attr)
 
-        source_id = self._get_next_id(
-            execution_node, target_id, specific_attrs,
-        )
+        current_hash = self._get_hash(execution_node, specific_attrs)
+        source_id = self._get_next_id(current_hash)
         parsed_node = {
             'source': source_id, 'target': target_id,
             'operation_type': execution_node[self.node_type_indicator],
+            'node_hash': current_hash
         }
 
         for metric in self.supported_metrics:
@@ -132,6 +150,11 @@ class DBParser(ABC):
                 parsed_node[normalized_key] = execution_node[metric]
 
         return parsed_node, source_id
+
+    @staticmethod
+    def _hash_execution_plan(execution_plan):
+        representation = json.dumps(execution_plan)
+        return hashlib.sha224(representation.encode()).hexdigest()
 
     @staticmethod
     def parse_default_decor(func):
