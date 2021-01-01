@@ -17,7 +17,7 @@ def listify(val):
 
 class QueryVizualizer(DataFrameSankeyVizualizer):
     columns_pks = frozenset([
-        'source', 'target', 'label', 'query_hash',
+        'source', 'target', 'label', 'query_hash', 'node_hash',
         'label_metadata', 'operation_type', 'redundent_operation',
     ])
 

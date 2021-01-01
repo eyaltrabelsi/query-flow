@@ -26,18 +26,18 @@ def optimize_color(color, by='luminance', value=0.75):
     return c.hex
 
 
-def color_range(c, n, by='luminance', min_value=0.5, max_value=0.9):
+def color_range(c, n, by='luminance', min_value=0.5, max_value=0.85):
     """
     >>> list(color_range("red", 4))
-    ['#f00', '#f33', '#f66', '#f99']
+    ['#ffb2b2', '#ff8686', '#ff5959', '#ff2d2d']
 
     >>> list(color_range("red", 3))
-    ['#f00', '#f44', '#f88']
+    ['#ffb2b2', '#f77', '#ff3b3b']
     """
 
     increment = (max_value - min_value) / n
     for i in range(n):
-        value = min_value + i * increment
+        value = max_value - i * increment
         yield optimize_color(c, by, value)
 
 
