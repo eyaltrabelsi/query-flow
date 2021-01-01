@@ -1,3 +1,5 @@
+import logging
+
 from operator import itemgetter
 
 import numpy as np
@@ -352,6 +354,9 @@ class PostgresParser(DBParser):
         df['label_metadata'] = df.operation_type.map(
             lambda s: f"\nDescription: {self.description_dict.get(s,'')}" if s else '') + df.label_metadata
         return df
+
+    def clean_cache(self):
+        logging.warning("Currently cache cleaning is not supported")
 
 
 if __name__ == '__main__':

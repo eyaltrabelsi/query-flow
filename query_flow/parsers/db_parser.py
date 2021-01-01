@@ -67,6 +67,10 @@ class DBParser(ABC):
     def enrich_stats(self):
         pass
 
+    @abstractmethod
+    def clean_cache(self):
+        pass
+
     def from_query(self, query, con_str, logger=None):
         with create_engine(con_str).connect() as con:
             explain_analyze_query = f"{self.query_prefix} {query.replace('%', '%%')}"
@@ -83,6 +87,7 @@ class DBParser(ABC):
 
         self._cleanup_state()
         for execution_plan in execution_plans:
+            self.clean_cache()
             self.max_id -= 1
             self.parse_node(execution_plan,
                             target_id=self.max_id,
