@@ -25,7 +25,6 @@ def test_parse(use_case):
     query = [json.loads(open(f'{use_case}/execution_plan.json').read())]
     actual_flow_df = p.parse(query)
     expected_flow_df = pd.read_csv(f'{use_case}/cardinality.csv')
-    # TODO what fail is due to compact
     assert_dataframe_almost_acual(
         actual_flow_df, expected_flow_df,
     )
