@@ -217,7 +217,9 @@ class PostgresParser(DBParser):
             key for key in execution_node.keys(
             ) if 'Cond' in key or 'Join Filter' == key
         ]
-        metadata = f"{' join with '.join(itemgetter('Join Type', cond_key[0])(execution_node))}"
+        metadata = f"{execution_node['Join Type']} Join"
+        if cond_key:
+            metadata += f" with {' '.join(execution_node[cond_key[0]])}"
         return {
             'label': 'JOIN',
             'label_metadata': metadata,
@@ -332,9 +334,10 @@ class PostgresParser(DBParser):
                 max(relevant_ops.total_cost)
 
             if row.operation_type in ['Unique', 'Where', 'Having'] and 'actual_startup_time' in df.columns:
-                df.loc[i, 'redundent_operation'] = (
-                    sum(relevant_ops.actual_rows) == row.actual_rows
-                )
+                df.loc[i, 'redundent_operation'] = False
+                #     (
+                #     sum(relevant_ops.actual_rows) == row.actual_rows
+                # )
 
             if any(op in row.label.split(' ') for op in self.label_replacement.keys()):
                 df.loc[i, 'label'] = self.label_replacement[row.label].join(

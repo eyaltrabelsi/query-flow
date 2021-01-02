@@ -1,4 +1,5 @@
 1) fix_wrong_unique - Unique work wrong with verbose=False 4. Identifying Ineffective operations.ipynb.
+   fix_index_naming of the scan
 
 2) Refactor to introduce new abstractions:
 - Flow/Execution Plan abstraction
