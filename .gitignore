@@ -13,3 +13,4 @@ dist/
 *.xml
 *.egg-info
 test-output.xml
+tpch-kit/*

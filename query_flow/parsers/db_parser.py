@@ -84,8 +84,6 @@ class DBParser(ABC):
                 .fetchone()
                 .values()[0][0][self.first_operator_indicator]
             )
-            # if logger:
-            #     logger.info(execution_plan)
             return execution_plan
 
     def parse(self, execution_plans):

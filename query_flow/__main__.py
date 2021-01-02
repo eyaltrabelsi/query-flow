@@ -105,7 +105,7 @@ def main2():
 
     query_renderer.vizualize(
         # , "actual_duration"
-        flow_df, title='Missing Records in Where Clause', metrics=['actual_rows'],
+        flow_df, title='Missing Records in Where Clause', metrics=['actual_duration'],
         open_=False,
     )
 
