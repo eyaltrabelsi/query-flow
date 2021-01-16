@@ -36,14 +36,22 @@ class DataFrameSankeyVizualizer(ABC):
     def special_cases_link_colors(self):
         pass
 
-    def vizualize(self, dfs, metrics, title, open_=True):
+    def vizualize(self, dfs, metrics, title, open_=True, plot_together=True):
         metrics = metrics or self.default_metrics.keys()
         assert all(
             metric in self.supported_metrics.keys() for metric in
             metrics
         ), f'The only supported metrics are {self.supported_metrics}'
-        flow_df = self._prepare_dfs_for_sankey(dfs, metrics)
 
+        if plot_together:
+            flow_df = self._prepare_dfs_for_sankey(dfs, metrics)
+            self._plot_sankey(flow_df, metrics, title, open_)
+        else:
+            for metric in metrics:
+                flow_df = self._prepare_dfs_for_sankey(dfs, [metric])
+                self._plot_sankey(flow_df, [metric], title, open_)
+
+    def _plot_sankey(self, flow_df, metrics, title, open_):
         data_trace = dict(
             type='sankey',
             orientation='h',
@@ -65,7 +73,7 @@ class DataFrameSankeyVizualizer(ABC):
             ),
         )
         layout = dict(
-            title=title,
+            title=f"{title}-{','.join(metrics)}",
             font=dict(size=10),
             height=750,
             updatemenus=[
@@ -89,7 +97,7 @@ class DataFrameSankeyVizualizer(ABC):
                 dict(data=[data_trace], layout=layout),
                 validate=False,
                 filename=f"{title}-{','.join(metrics)}.html",
-                auto_open=open_,
+                auto_open=False,
             )
         else:
             iplot(
