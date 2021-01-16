@@ -76,7 +76,7 @@ class DBParser(ABC):
     def clean_cache(self):
         pass
 
-    def from_query(self, query, con_str, logger=None):
+    def from_query(self, query, con_str):
         with create_engine(con_str).connect() as con:
             explain_analyze_query = f"{self.query_prefix} {query.replace('%', '%%')}"
             execution_plan = (
@@ -84,8 +84,6 @@ class DBParser(ABC):
                 .fetchone()
                 .values()[0][0][self.first_operator_indicator]
             )
-            if logger:
-                logger.info(execution_plan)
             return execution_plan
 
     def parse(self, execution_plans):
@@ -114,7 +112,7 @@ class DBParser(ABC):
             parsed_nodes, source_id = self.strategy_dict[node_type](
                 target_id, execution_node,
             )
-            # TODO move this target_id here is not accurate all the time
+
             parsed_nodes = [dict(asdict(parsed_node), **{'query_hash': query_hash})
                             for parsed_node in parsed_nodes]
 

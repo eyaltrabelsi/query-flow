@@ -1,5 +1,5 @@
 
-cat.PHONY: clean test install_mock_tpch install_mock_imdb docs lint
+cat.PHONY: clean test install_mock_imdb docs lint
 
 clean:
 	find . -name '*.pyc' -exec rm -f {} +
@@ -29,6 +29,3 @@ install:
 
 install_mock_imdb:
 	python query_flow/datagen/create_imdb.py
-
-install_mock_tpch:
-	python query_flow/datagen/create_tpch.py

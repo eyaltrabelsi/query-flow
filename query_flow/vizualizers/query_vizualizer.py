@@ -55,8 +55,8 @@ class QueryVizualizer(DataFrameSankeyVizualizer):
         if node_colors:
             self.node_colors = node_colors
 
-    def get_flow_df(self, queries, con_str, should_log=False):
-        execution_plans = [self.parser.from_query(query, con_str, should_log)
+    def get_flow_df(self, queries, con_str):
+        execution_plans = [self.parser.from_query(query, con_str)
                            for query in listify(queries)]
         return self.parser.parse(execution_plans)
 

@@ -110,8 +110,8 @@ class PostgresParser(DBParser):
         ([ParsedNode(source=9999, target=1000, operation_type='Limit', label='LIMIT 5', label_metadata='LIMIT: 5')], 9999)
         """
         return {
-            'label': f"LIMIT {execution_node['Actual Rows']}",
-            'label_metadata': f"LIMIT: {execution_node['Actual Rows']}",
+            'label': f"LIMIT {execution_node.get('Actual Rows', '')}",
+            'label_metadata': f"LIMIT: {execution_node.get('Actual Rows')}",
         }
 
     @DBParser.parse_default_decor
@@ -217,7 +217,9 @@ class PostgresParser(DBParser):
             key for key in execution_node.keys(
             ) if 'Cond' in key or 'Join Filter' == key
         ]
-        metadata = f"{' join with '.join(itemgetter('Join Type', cond_key[0])(execution_node))}"
+        metadata = f"{execution_node['Join Type']} Join"
+        if cond_key:
+            metadata += f" with {' '.join(execution_node[cond_key[0]])}"
         return {
             'label': 'JOIN',
             'label_metadata': metadata,
@@ -297,9 +299,10 @@ class PostgresParser(DBParser):
         def parse_naive_aggregate(execution_node):
             res = {
                 'label': 'AGG',
-                'label_metadata': f"Group key: {itemgetter('Group Key')(execution_node)}\n"
-                                  f"Output: {itemgetter('Output')(execution_node)}"
+                'label_metadata': f"Output: {itemgetter('Output')(execution_node)}\n"
             }
+            if 'Group Key' in execution_node:
+                res['label_metadata'] += f"Group key: {itemgetter('Group Key')(execution_node)}"
             if 'Actual Rows' in execution_node:
                 res['actual_rows'] = execution_node['Actual Rows'] + \
                     execution_node.get('Rows Removed by Filter', 0)
@@ -332,9 +335,10 @@ class PostgresParser(DBParser):
                 max(relevant_ops.total_cost)
 
             if row.operation_type in ['Unique', 'Where', 'Having'] and 'actual_startup_time' in df.columns:
-                df.loc[i, 'redundent_operation'] = (
-                    sum(relevant_ops.actual_rows) == row.actual_rows
-                )
+                df.loc[i, 'redundent_operation'] = False
+                #     (
+                #     sum(relevant_ops.actual_rows) == row.actual_rows
+                # )
 
             if any(op in row.label.split(' ') for op in self.label_replacement.keys()):
                 df.loc[i, 'label'] = self.label_replacement[row.label].join(
