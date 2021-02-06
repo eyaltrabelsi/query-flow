@@ -1,5 +1,4 @@
-query_number,hash,duration,query,estimated_cost_flow,actual_duration,actual_rows
-1,cb3ab3ba2e819ef0f455d58c53dffbf4,5.270646,"select
+select
 	l_returnflag,
 	l_linestatus,
 	sum(l_quantity) as sum_qty,
@@ -19,8 +18,11 @@ group by
 	l_linestatus
 order by
 	l_returnflag,
-	l_linestatus",data/query-1-estimated_cost.html,data/query-1-actual_duration.html,data/query-1-actual_rows.html
-2,556b185bae42a43f03cd8648c3436235,4.957888,"select
+	l_linestatus
+;
+
+
+select
 	s_acctbal,
 	s_name,
 	n_name,
@@ -63,8 +65,10 @@ order by
 	n_name,
 	s_name,
 	p_partkey
-limit 100",data/query-2-estimated_cost.html,data/query-2-actual_duration.html,data/query-2-actual_rows.html
-3,ea27ba164ebc172c7c47f65b11df5bc1,1.250412,"select
+limit 100;
+
+
+select
 	l_orderkey,
 	sum(l_extendedprice * (1 - l_discount)) as revenue,
 	o_orderdate,
@@ -86,8 +90,10 @@ group by
 order by
 	revenue desc,
 	o_orderdate
-limit 10",data/query-3-estimated_cost.html,data/query-3-actual_duration.html,data/query-3-actual_rows.html
-4,d8a60be68d518c2bb025bf269031f194,0.742716,"select
+limit 10;
+
+
+select
 	o_orderpriority,
 	count(*) as order_count
 from
@@ -107,8 +113,11 @@ where
 group by
 	o_orderpriority
 order by
-	o_orderpriority",data/query-4-estimated_cost.html,data/query-4-actual_duration.html,data/query-4-actual_rows.html
-5,d5ff3c4f2f81b94f9379090e49aa5367,3.160236,"select
+	o_orderpriority
+;
+
+
+select
 	n_name,
 	sum(l_extendedprice * (1 - l_discount)) as revenue
 from
@@ -131,8 +140,11 @@ where
 group by
 	n_name
 order by
-	revenue desc",data/query-5-estimated_cost.html,data/query-5-actual_duration.html,data/query-5-actual_rows.html
-6,b29dd29f2bc745d123e7624484b09091,0.865722,"select
+	revenue desc
+;
+
+
+select
 	sum(l_extendedprice * l_discount) as revenue
 from
 	lineitem
@@ -140,8 +152,11 @@ where
 	l_shipdate >= date '1996-01-01'
 	and l_shipdate < date '1996-01-01' + interval '1' year
 	and l_discount between 0.03 - 0.01 and 0.03 + 0.01
-	and l_quantity < 24",data/query-6-estimated_cost.html,data/query-6-actual_duration.html,data/query-6-actual_rows.html
-7,3450e9919a4dc6c4bed643ee787e5f51,1.807582,"select
+	and l_quantity < 24
+;
+
+
+select
 	supp_nation,
 	cust_nation,
 	l_year,
@@ -179,8 +194,11 @@ group by
 order by
 	supp_nation,
 	cust_nation,
-	l_year",data/query-7-estimated_cost.html,data/query-7-actual_duration.html,data/query-7-actual_rows.html
-8,e3edcf08823844320b890319bceb2b24,2.086135,"select
+	l_year
+;
+
+
+select
 	o_year,
 	sum(case
 		when nation = 'JAPAN' then volume
@@ -216,8 +234,11 @@ from
 group by
 	o_year
 order by
-	o_year",data/query-8-estimated_cost.html,data/query-8-actual_duration.html,data/query-8-actual_rows.html
-9,e3b5da8384202fa3fb179d7daaa0ac00,3.473511,"select
+	o_year
+;
+
+
+select
 	nation,
 	o_year,
 	sum(amount) as sum_profit
@@ -248,8 +269,11 @@ group by
 	o_year
 order by
 	nation,
-	o_year desc",data/query-9-estimated_cost.html,data/query-9-actual_duration.html,data/query-9-actual_rows.html
-10,02d1bf62673c6866ac3073fdd63d251a,0.95927,"select
+	o_year desc
+;
+
+
+select
 	c_custkey,
 	c_name,
 	sum(l_extendedprice * (1 - l_discount)) as revenue,
@@ -280,8 +304,10 @@ group by
 	c_comment
 order by
 	revenue desc
-limit 20",data/query-10-estimated_cost.html,data/query-10-actual_duration.html,data/query-10-actual_rows.html
-11,e03ee68b562b3ca3fd2c6767accc329d,0.451004,"select
+limit 20;
+
+
+select
 	ps_partkey,
 	sum(ps_supplycost * ps_availqty) as value
 from
@@ -307,8 +333,11 @@ group by
 				and n_name = 'UNITED KINGDOM'
 		)
 order by
-	value desc",data/query-11-estimated_cost.html,data/query-11-actual_duration.html,data/query-11-actual_rows.html
-12,40c22284256ede6ee0fc9aa7468e33cc,1.5073889999999999,"select
+	value desc
+;
+
+
+select
 	l_shipmode,
 	sum(case
 		when o_orderpriority = '1-URGENT'
@@ -335,8 +364,11 @@ where
 group by
 	l_shipmode
 order by
-	l_shipmode",data/query-12-estimated_cost.html,data/query-12-actual_duration.html,data/query-12-actual_rows.html
-13,df98cf1fd6414366e121bebd2588a218,1.791984,"select
+	l_shipmode
+;
+
+
+select
 	c_count,
 	count(*) as custdist
 from
@@ -355,8 +387,11 @@ group by
 	c_count
 order by
 	custdist desc,
-	c_count desc",data/query-13-estimated_cost.html,data/query-13-actual_duration.html,data/query-13-actual_rows.html
-14,54e12e0ea05c410db3017218c50f0d36,0.9430320000000001,"select
+	c_count desc
+;
+
+
+select
 	100.00 * sum(case
 		when p_type like 'PROMO%'
 			then l_extendedprice * (1 - l_discount)
@@ -368,8 +403,10 @@ from
 where
 	l_partkey = p_partkey
 	and l_shipdate >= date '1994-06-01'
-	and l_shipdate < date '1994-06-01' + interval '1' month",data/query-14-estimated_cost.html,data/query-14-actual_duration.html,data/query-14-actual_rows.html
-15,467659627d51025305836cb4ca75ff21,1.0463520000000002,"with revenue0 as (
+	and l_shipdate < date '1994-06-01' + interval '1' month
+;
+
+with revenue0 as (
 	select
 		l_suppkey as supplier_no,
 		sum(l_extendedprice * (1 - l_discount)) as total_revenue
@@ -398,8 +435,10 @@ where
 			revenue0
 	)
 order by
-	s_suppkey",data/query-15-estimated_cost.html,data/query-15-actual_duration.html,data/query-15-actual_rows.html
-16,2ebb6ddf02e04d5ff1eeeb1dbbaaa39d,0.851023,"select
+	s_suppkey;
+
+
+select
 	p_brand,
 	p_type,
 	p_size,
@@ -428,8 +467,11 @@ order by
 	supplier_cnt desc,
 	p_brand,
 	p_type,
-	p_size",data/query-16-estimated_cost.html,data/query-16-actual_duration.html,data/query-16-actual_rows.html
-17,acfca38e2fa007dd95222355bea14eb4,0.511114,"select
+	p_size
+;
+
+
+select
 	sum(l_extendedprice) / 7.0 as avg_yearly
 from
 	lineitem,
@@ -445,8 +487,11 @@ where
 			lineitem
 		where
 			l_partkey = p_partkey
-	)",data/query-17-estimated_cost.html,data/query-17-actual_duration.html,data/query-17-actual_rows.html
-18,0a5dcccd48552bc3323de74f04a97d50,7.358351,"select
+	)
+;
+
+
+select
 	c_name,
 	c_custkey,
 	o_orderkey,
@@ -478,8 +523,10 @@ group by
 order by
 	o_totalprice desc,
 	o_orderdate
-limit 100",data/query-18-estimated_cost.html,data/query-18-actual_duration.html,data/query-18-actual_rows.html
-19,02f6e8e108980555716dbffc59a123ed,0.140693,"select
+limit 100;
+
+
+select
 	sum(l_extendedprice* (1 - l_discount)) as revenue
 from
 	lineitem,
@@ -513,8 +560,11 @@ where
 		and p_size between 1 and 15
 		and l_shipmode in ('AIR', 'AIR REG')
 		and l_shipinstruct = 'DELIVER IN PERSON'
-	)",data/query-19-estimated_cost.html,data/query-19-actual_duration.html,data/query-19-actual_rows.html
-20,a4b0750b41755ef3bc07fce87b3e201e,0.793616,"select
+	)
+;
+
+
+select
 	s_name,
 	s_address
 from
@@ -550,8 +600,11 @@ where
 	and s_nationkey = n_nationkey
 	and n_name = 'CANADA'
 order by
-	s_name",data/query-20-estimated_cost.html,data/query-20-actual_duration.html,data/query-20-actual_rows.html
-21,76068179287b8b9d707df05533966202,2.1989029999999996,"select
+	s_name
+;
+
+
+select
 	s_name,
 	count(*) as numwait
 from
@@ -590,8 +643,10 @@ group by
 order by
 	numwait desc,
 	s_name
-limit 100",data/query-21-estimated_cost.html,data/query-21-actual_duration.html,data/query-21-actual_rows.html
-22,348f3c15e39e9e7e259aa93ab3e9145d,0.278955,"select
+limit 100;
+
+
+select
 	cntrycode,
 	count(*) as numcust,
 	sum(c_acctbal) as totacctbal
@@ -627,4 +682,4 @@ from
 group by
 	cntrycode
 order by
-	cntrycode",data/query-22-estimated_cost.html,data/query-22-actual_duration.html,data/query-22-actual_rows.html
+	cntrycode;

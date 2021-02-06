@@ -28,4 +28,4 @@ install:
 	pip3 install -e '.[development]'
 
 install_mock_imdb:
-	python query_flow/datagen/create_imdb.py
+	python query_flow/datagen/create_imdb.py $(conn_str)

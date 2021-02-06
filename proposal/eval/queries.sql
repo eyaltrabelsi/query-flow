@@ -682,4 +682,4 @@ from
 group by
 	cntrycode
 order by
-	cntrycode
+	cntrycode;

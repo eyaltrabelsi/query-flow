@@ -321,8 +321,7 @@ class PostgresParser(DBParser):
             df['actual_duration'] = df['actual_total_time']
 
         for i, row in df.iterrows():
-
-            relevant_ops = df.query(f"target=={row['source']}")
+            relevant_ops = df.query(f"target=={row['source']} & query_hash=='{row['query_hash']}'")
             if 'actual_startup_time' in df.columns:
                 df.loc[i, 'actual_duration'] = row.actual_total_time if relevant_ops.empty else row.actual_total_time - \
                     max(relevant_ops.actual_total_time)
