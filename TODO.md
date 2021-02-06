@@ -7,7 +7,7 @@
 
 3) support_terminal_execution - vizualise, populate_imdb
 
-4) refactor_logging.
+4) refactor_logging like matplotlib.
 
 5) multiple_queries_grouping -  Support grouping edges with the same start end nodes, and represent them by either avg/median/max/min.
 
@@ -21,8 +21,6 @@
 - [Others](https://pganalyze.com/docs/explain/other-nodes): Bitmap And, Bitmap Or, Group, Lock Rows, Materialize, Merge Append, Modify Table, Project Set, Recursive Union, SetOp
 - Go over important filters
 - Check Hashaggregate
-
-9) datagen_refactor - validate and refactor datagen to work from terminal
 
 10) update_readme:
 - Installation
