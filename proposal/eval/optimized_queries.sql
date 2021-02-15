@@ -73,15 +73,18 @@ select
 	sum(l_extendedprice * (1 - l_discount)) as revenue,
 	o_orderdate,
 	o_shippriority
-from
-	customer,
-	orders,
-	lineitem
-where
-	c_mktsegment = 'MACHINERY'
-	and c_custkey = o_custkey
-	and l_orderkey = o_orderkey
-	and o_orderdate < date '1995-03-28'
+
+from (
+    select o_orderdate, o_shippriority, o_orderkey
+    from
+        customer,
+        orders
+    where
+        c_mktsegment = 'MACHINERY'
+        and c_custkey = o_custkey
+        and o_orderdate < date '1995-03-28'
+    ) a
+inner join lineitem on l_orderkey = o_orderkey
 	and l_shipdate > date '1995-03-28'
 group by
 	l_orderkey,
@@ -91,7 +94,6 @@ order by
 	revenue desc,
 	o_orderdate
 limit 10;
-
 
 select
 	o_orderpriority,

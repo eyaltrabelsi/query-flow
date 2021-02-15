@@ -1,2 +1,2 @@
-CREATE INDEX IDX_LINEITEM_SHIPDATE ON LINEITEM (L_SHIPDATE, L_DISCOUNT, L_QUANTITY);
-CREATE INDEX IDX_ORDERS_ORDERDATE ON ORDERS (O_ORDERDATE);
+CREATE INDEX supplier_s_suppkey_idx ON "supplier" ("s_suppkey");
+CREATE INDEX orders_o_custkey_idx ON "orders" ("o_custkey");
