@@ -15,7 +15,7 @@ The instructions are heavily based on this [guide](https://ankane.org/tpc-h)
     ```
 1. Generate tpc-h data csvs
     ```
-    ./dbgen -vf -s <SCALE FACTOR>
+    sudo ./dbgen -vf -s <SCALE FACTOR>
     ```
 1. Load csvs to database tables 
     ```
@@ -43,3 +43,6 @@ The instructions are heavily based on this [guide](https://ankane.org/tpc-h)
     ```
     python benchmark_tpch.py <CONN_STR>
     ```
+   https://github.com/jfcoz/postgresqltuner
+ perl postgresqltuner.pl --host="localhost" --database=tpch-benchmark-scale-3 >> /tmp/tpch-benchmark-scale-3
+  
