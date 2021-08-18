@@ -5,36 +5,25 @@
 - Flow/Execution Plan abstraction
 - refactor enrichment_stats
 
-3) support_terminal_execution - vizualise, populate_imdb
+3) support_terminal_execution
 
 4) refactor_logging like matplotlib.
 
 5) multiple_queries_grouping -  Support grouping edges with the same start end nodes, and represent them by either avg/median/max/min.
 
-7) write_about_logging - for each parser I will describe which logging techniques exists.
-- auto_explain
-- Pg badger https://severalnines.com/database-blog/postgresql-log-analysis-pgbadger 
-- pg_stat_statements max_time min_time etc  
--
-8) support_more_parsing:
-- [Scans](https://pganalyze.com/docs/explain/scan-nodes): CTE Scan, Custom Scan, Foreign Scan, Function Scan, Table Sample Scan, Tid Scan, Values Scan, Work Table Scan
-- [Others](https://pganalyze.com/docs/explain/other-nodes): Bitmap And, Bitmap Or, Group, Lock Rows, Materialize, Merge Append, Modify Table, Project Set, Recursive Union, SetOp
-- Go over important filters
-- Check Hashaggregate
-
-10) update_readme:
+6) update_readme:
 - Installation
 - Usage / Docs
 - Examples
 
-11) fix_zero_edge_bug - UI Bug due to .replace(0, 1)
+7) fix_zero_edge_bug - UI Bug due to .replace(0, 1)
 
-12) Support easier installations:
+8) Support easier installations:
 - pypi
 - apt-get
 - brew
 
-13) supporting_new_parsers:
+9) supporting_new_parsers:
 - mysql
 - sqlite
 

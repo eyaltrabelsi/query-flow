@@ -1,43 +1,52 @@
 {
   "Node Type": "Gather",
   "Actual Rows": 558,
+  "Total Time": 9207,
   "Plans": [
     {
       "Node Type": "Hash Join",
       "Join Type": "Inner",
-      "Actual Rows": 186,
+      "Actual Rows": 558,
+      "Total Time": 8907,
       "Hash Cond": "(titles.title_id = crew.title_id)",
       "Plans": [
         {
-          "Node Type": "Seq Scan",
-          "Relation Name": "titles",
-          "Actual Rows": 489076,
-
-          "Rows Removed by Filter": 1890158
-        },
-        {
           "Node Type": "Hash",
-          "Actual Rows": 565,
+          "Actual Rows": 489076,
+          "Total Time": 2420,
           "Plans": [
             {
+              "Node Type": "Seq Scan",
+              "Relation Name": "titles",
+              "Actual Rows": 489076,
+              "Total Time": 1752,
+              "Rows Removed by Filter": 1890158
+            }
+        },
+        {
+
               "Node Type": "Hash Join",
               "Join Type": "Inner",
               "Actual Rows": 565,
+              "Total Time": 7004,
               "Hash Cond": "(crew.person_id = people.person_id)",
               "Plans": [
                 {
                   "Node Type": "Seq Scan",
                   "Relation Name": "crew",
-                  "Actual Rows": 13651901
+                  "Actual Rows": 13651901,
+                  "Total Time": 2803,
                 },
                 {
                   "Node Type": "Hash",
                   "Actual Rows": 3,
+                  "Total Time": 2020,
                   "Plans": [
                     {
                       "Node Type": "Seq Scan",
                       "Relation Name": "people",
                       "Actual Rows": 3,
+                      "Total Time": 1020,
                       "Rows Removed by Filter": 3446258
                     }
                   ]

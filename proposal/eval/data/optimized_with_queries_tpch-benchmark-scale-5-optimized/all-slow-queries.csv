@@ -1,0 +1,97 @@
+,source,target,operation_type,label,label_metadata,node_hash,shared_read_blocks,actual_rows,shared_hit_blocks,shared_dirtied_blocks,local_read_blocks,local_hit_blocks,plan_width,local_written_blocks,local_dirtied_blocks,temp_written_blocks,temp_read_blocks,plan_rows,total_cost,actual_loops,actual_total_time,shared_written_blocks,actual_startup_time,query_hash,estimated_cost,redundent_operation,actual_startup_duration,actual_duration,estimated_cost_pct,actual_duration_pct,actual_plan_rows_ratio
+0,0,12,Seq Scan,Nation,"
+Description: Finds relevant records by sequentially scanning the input record set. When reading from a table, Seq Scans (unlike Index Scans) perform a single read operation (only the table is read).",a50ed53558b17945873b4969d0b0b1b9b9977f9ee239f04a58795469,0,25,2,0,0,0,30,0,0,0,0,25,1.25,2,0.045,0,0.042,b2d78ad79efe5844449f88ff74b3414aca98834c42706cd7950573f2,1.25,False,0.042,0.045,100.0,100.0,1.0
+1,1,2,Index Scan,Lineitem,"
+Description: Finds relevant records based on an Index. Index Scans perform 2 read operations: one to read the index and another to read the actual value from the table.",338f433aa55b13214fa3e715a5d711038489be0effe50685f67a3033,0,29,7142989,0,0,0,29,0,0,0,0,1,1.63,216540,0.059,0,0.011,b2d78ad79efe5844449f88ff74b3414aca98834c42706cd7950573f2,1.63,False,0.011,0.059,100.0,100.0,29.0
+2,2,7,Where,Lineitem*,"
+Description: Filter relation to hold only relevant records.Filter condition: (partsupp.ps_suppkey = lineitem.l_suppkey)",1b8c17db771711b05593406a8dc8e78dab046bd5dc80aac286cd23a8,0,7,7142989,0,0,0,29,0,0,0,0,1,1.63,216540,0.059,0,0.011,b2d78ad79efe5844449f88ff74b3414aca98834c42706cd7950573f2,0.0,False,-1.619,0.0,0.0,0.0,7.0
+3,3,6,Index Scan,Partsupp,"
+Description: Finds relevant records based on an Index. Index Scans perform 2 read operations: one to read the index and another to read the actual value from the table.",b7af1440e3ad5cacdc63ff3cbeb0f79174519d466ddb347871f45d96,0,4,221104,0,0,0,14,0,0,0,0,10,4.81,54135,0.012,0,0.01,b2d78ad79efe5844449f88ff74b3414aca98834c42706cd7950573f2,4.81,False,0.01,0.012,100.0,100.0,2.5
+4,4,5,Seq Scan,Part,"
+Description: Finds relevant records by sequentially scanning the input record set. When reading from a table, Seq Scans (unlike Index Scans) perform a single read operation (only the table is read).",22c5f8c5f3b14c12e92266af272370ce2881b0c042e3fc86fddf2065,0,500000,20482,0,0,0,4,0,0,0,0,9775,24514.26,2,312.845,0,0.022,b2d78ad79efe5844449f88ff74b3414aca98834c42706cd7950573f2,24514.26,False,0.022,312.845,100.0,100.0,51.150895140664964
+5,5,6,Where,Part*,"
+Description: Filter relation to hold only relevant records.Filter condition: ((part.p_name)::text ~~ '%ivory%'::text)",92623148ef5e669b3272da1f77a665d34a634c0a6209048fed05fbbb,0,27068,20482,0,0,0,4,0,0,0,0,9775,24514.26,2,312.845,0,0.022,b2d78ad79efe5844449f88ff74b3414aca98834c42706cd7950573f2,0.0,False,-24514.237999999998,0.0,0.0,0.0,2.7691048593350382
+6,6,7,Nested Loop,Partsupp ⋈ Part*,"
+Description: Merges two record sets by looping through every record in the first set and trying to find a match in the second set. All matching records are returned.Inner Join",72bc23f2ee507751ac50cb54065376f5bb108ee4e0f53290c60d477d,0,108270,241586,0,0,0,18,0,0,0,0,39101,72477.26,2,709.422,0,0.069,b2d78ad79efe5844449f88ff74b3414aca98834c42706cd7950573f2,47963.0,False,-24514.191,396.577,66.17661870771605,55.90142397613832,2.7689828904631595
+7,7,9,Nested Loop,Lineitem* ⋈ Partsupp ⋈ Part*,"
+Description: Merges two record sets by looping through every record in the first set and trying to find a match in the second set. All matching records are returned.Inner Join",72bc23f2ee507751ac50cb54065376f5bb108ee4e0f53290c60d477d,0,811690,7384575,0,0,0,35,0,0,0,0,24,136500.77,2,7486.347,0,0.127,b2d78ad79efe5844449f88ff74b3414aca98834c42706cd7950573f2,64023.509999999995,False,-72477.133,6776.924999999999,46.903405746355865,90.52378950641747,33820.416666666664
+8,8,9,Seq Scan,Orders,"
+Description: Finds relevant records by sequentially scanning the input record set. When reading from a table, Seq Scans (unlike Index Scans) perform a single read operation (only the table is read).",5c6dc6de65a6425a67690697be735c9bbd1d29a1ecd9e4aa2791a60b,0,3750000,130460,0,0,0,8,0,0,0,0,1875000,149210.0,2,1411.205,0,0.017,b2d78ad79efe5844449f88ff74b3414aca98834c42706cd7950573f2,149210.0,False,0.017,1411.205,100.0,100.0,2.0
+9,9,11,Hash Join,Lineitem* ⋈ Partsupp ⋈ Part* ⋈ Orders,"
+Description: Joins to record sets by hashing one of them (using a Hash Scan).Inner Join with (orders.o_orderkey = lineitem.l_orderkey)",7bba668cae95e930f54623180042c86be42fae415e2759ce33f06538,0,811690,7515035,0,0,0,35,0,0,0,0,18,292742.38,2,12058.866,0,8186.319,b2d78ad79efe5844449f88ff74b3414aca98834c42706cd7950573f2,143532.38,False,-141023.681,4572.519,49.030270232823824,37.91831669744071,45093.88888888889
+10,10,11,Seq Scan,Supplier,"
+Description: Finds relevant records by sequentially scanning the input record set. When reading from a table, Seq Scans (unlike Index Scans) perform a single read operation (only the table is read).",4ca0f0ddbb9a6790abc1f8268f68b5b4e581048a5682b22c09b09dcc,0,25000,1109,0,0,0,8,0,0,0,0,29412,1403.12,2,9.926,0,0.021,b2d78ad79efe5844449f88ff74b3414aca98834c42706cd7950573f2,1403.12,False,0.021,9.926,100.0,100.0,1.17648
+11,11,12,Hash Join,Lineitem* ⋈ Partsupp ⋈ Part* ⋈ Orders ⋈ Supplier,"
+Description: Joins to record sets by hashing one of them (using a Hash Scan).Inner Join with (supplier.s_suppkey = lineitem.l_suppkey)",649245ea8cbaa3812f39dbb1d2a947b25ca239496e196577a1c4887d,0,811690,7516144,0,0,0,31,0,0,0,0,43,294256.13,2,13124.581,0,12690.201,b2d78ad79efe5844449f88ff74b3414aca98834c42706cd7950573f2,1513.75,False,-280052.179,1065.7150000000001,0.5144327834393798,8.119992554428977,18876.511627906977
+12,12,13,Hash Join,Nation ⋈ Lineitem* ⋈ Partsupp ⋈ Part* ⋈ Orders ⋈ Supplier,"
+Description: Joins to record sets by hashing one of them (using a Hash Scan).Inner Join with (supplier.s_nationkey = nation.n_nationkey)",57debb3f95a5b196ba8535f8bbb91f15a25aa420438109458e5ef5a0,0,811690,7516163,0,0,0,57,0,0,0,0,43,294258.5,2,13608.946,0,12690.332,b2d78ad79efe5844449f88ff74b3414aca98834c42706cd7950573f2,2.3699999999953434,False,-281565.798,484.3649999999998,0.0008054142870963264,3.5591661543810944,18876.511627906977
+13,13,14,Aggregate,AGG,"
+Description: Groups records together based on a GROUP BY or aggregate function (e.g. sum()).Output: ['nation.n_name', ""(date_part('year'::text, (orders.o_orderdate)::timestamp without time zone))"", ""PARTIAL sum(((lineitem.l_extendedprice * ('1'::numeric - lineitem.l_discount)) - (partsupp.ps_supplycost * lineitem.l_quantity)))""]
+Partial Mode: Partial
+Strategy: Sorted
+Group key: ['nation.n_name', ""(date_part('year'::text, (orders.o_orderdate)::timestamp without time zone))""]",8bc29e858b56a79080f20bf04b28ca3f374f1325826e63d7058eb5f0,0,175,7516177,0,0,0,66,0,0,0,0,43,294261.27,2,15839.901,0,14606.852,b2d78ad79efe5844449f88ff74b3414aca98834c42706cd7950573f2,2.7700000000186265,False,-279651.648,2230.955,0.0009413403265807378,14.08439989618622,4.069767441860465
+14,14,39,Aggregate,AGG,"
+Description: Groups records together based on a GROUP BY or aggregate function (e.g. sum()).Output: ['nation.n_name', ""(date_part('year'::text, (orders.o_orderdate)::timestamp without time zone))"", ""sum(((lineitem.l_extendedprice * ('1'::numeric - lineitem.l_discount)) - (partsupp.ps_supplycost * lineitem.l_quantity)))""]
+Partial Mode: Finalize
+Strategy: Sorted
+Group key: ['nation.n_name', ""(date_part('year'::text, (orders.o_orderdate)::timestamp without time zone))""]",6115a2618cc5b05920e11df6f861d97ef8ba83f7d6283684f6a81609,0,175,7516177,0,0,0,66,0,0,0,0,73,295267.83,1,16162.005,0,14617.905,b2d78ad79efe5844449f88ff74b3414aca98834c42706cd7950573f2,1006.5599999999977,False,-279643.365,322.10399999999936,0.3408972795986605,1.9929705503741606,2.3972602739726026
+15,15,18,Seq Scan,Customer,"
+Description: Finds relevant records by sequentially scanning the input record set. When reading from a table, Seq Scans (unlike Index Scans) perform a single read operation (only the table is read).",895c138c3976a8303b733c2d99101e80ecda8ffca4fe25539668c21f,0,750000,17915,0,0,0,4,0,0,0,0,750000,25415.0,1,302.87,0,0.037,a2861a5e13f3ae00e8b201f607e4b3db91420fec7f3fe16938de2109,25415.0,False,0.037,302.87,100.0,100.0,1.0
+16,16,17,Seq Scan,Orders,"
+Description: Finds relevant records by sequentially scanning the input record set. When reading from a table, Seq Scans (unlike Index Scans) perform a single read operation (only the table is read).",5c6dc6de65a6425a67690697be735c9bbd1d29a1ecd9e4aa2791a60b,0,7500000,130460,0,0,0,8,0,0,0,0,7499250,224210.0,1,5507.444,0,0.024,a2861a5e13f3ae00e8b201f607e4b3db91420fec7f3fe16938de2109,224210.0,False,0.024,5507.444,100.0,100.0,1.000100010001
+17,17,18,Where,Orders*,"
+Description: Filter relation to hold only relevant records.Filter condition: ((orders.o_comment)::text !~~ '%pending%packages%'::text)",0f693c817f6ff10050e57c4878db93044ffea8cf9b0c208780d609ad,0,7419827,130460,0,0,0,8,0,0,0,0,7499250,224210.0,1,5507.444,0,0.024,a2861a5e13f3ae00e8b201f607e4b3db91420fec7f3fe16938de2109,0.0,False,-224209.976,0.0,0.0,0.0,1.0107041579271323
+18,18,19,Hash Join,Customer ⋈ Orders*,"
+Description: Joins to record sets by hashing one of them (using a Hash Scan).Right Join with (orders.o_custkey = customer.c_custkey)",6eebcbc321d5b1272375ca2a069bedeed93230aae5dbaec26841961e,0,7669838,148375,0,0,0,8,0,0,0,0,7499250,362114.69,1,12641.166,0,644.78,a2861a5e13f3ae00e8b201f607e4b3db91420fec7f3fe16938de2109,137904.69,False,-223565.22,7133.721999999999,38.083152605601285,56.43246833401285,1.0227473414008068
+19,19,20,Aggregate,AGG,"
+Description: Groups records together based on a GROUP BY or aggregate function (e.g. sum()).Output: ['customer.c_custkey', 'count(orders.o_orderkey)']
+Partial Mode: Simple
+Strategy: Hashed
+Group key: ['customer.c_custkey']",dab4273e4c7c1530d421e03ba8bc386c1e7e90b3d06b2f0a5a76411e,0,750000,148375,0,0,0,12,0,0,0,0,750000,407110.94,1,17845.586,0,17574.847,a2861a5e13f3ae00e8b201f607e4b3db91420fec7f3fe16938de2109,44996.25,False,-344539.843,5204.42,11.052576970788355,29.163626232279512,1.0
+20,20,38,Aggregate,AGG,"
+Description: Groups records together based on a GROUP BY or aggregate function (e.g. sum()).Output: ['(count(orders.o_orderkey))', 'count(*)']
+Partial Mode: Simple
+Strategy: Hashed
+Group key: ['count(orders.o_orderkey)']",f8447adca84c4d693e0a4f6c1968d111221e00e8c0a075b32bf1f7bb,0,43,148375,0,0,0,16,0,0,0,0,200,418362.94,1,18091.527,0,18091.517,a2861a5e13f3ae00e8b201f607e4b3db91420fec7f3fe16938de2109,11252.0,False,-389019.423,245.9409999999989,2.6895307696231407,1.3594264320529654,4.651162790697675
+21,21,22,Seq Scan,Lineitem,"
+Description: Finds relevant records by sequentially scanning the input record set. When reading from a table, Seq Scans (unlike Index Scans) perform a single read operation (only the table is read).",a0ccab0149e24cda520e5e673745d3789407045fc371ddf445db8605,0,5999959,562395,0,0,0,25,0,0,0,0,7372504,656144.36,5,3370.992,0,0.036,ff3613beee47558f2d21c938f901c706ce80fc4d8bb965acdd531c41,656144.36,False,0.036,3370.992,100.0,100.0,1.2287590631869318
+22,22,23,Where,Lineitem*,"
+Description: Filter relation to hold only relevant records.Filter condition: (lineitem.l_shipdate <= '1998-08-29 00:00:00'::timestamp without time zone)",9a597967f7f9bc8def67864117e520be63da544c154eb912b2b14297,0,5907938,562395,0,0,0,25,0,0,0,0,7372504,656144.36,5,3370.992,0,0.036,ff3613beee47558f2d21c938f901c706ce80fc4d8bb965acdd531c41,0.0,False,-656144.324,0.0,0.0,0.0,1.2478979975754654
+23,23,24,Aggregate,AGG,"
+Description: Groups records together based on a GROUP BY or aggregate function (e.g. sum()).Output: ['l_returnflag', 'l_linestatus', 'PARTIAL sum(l_quantity)', 'PARTIAL sum(l_extendedprice)', ""PARTIAL sum((l_extendedprice * ('1'::numeric - l_discount)))"", ""PARTIAL sum(((l_extendedprice * ('1'::numeric - l_discount)) * ('1'::numeric + l_tax)))"", 'PARTIAL avg(l_quantity)', 'PARTIAL avg(l_extendedprice)', 'PARTIAL avg(l_discount)', 'PARTIAL count(*)']
+Partial Mode: Partial
+Strategy: Hashed
+Group key: ['lineitem.l_returnflag', 'lineitem.l_linestatus']",5dfecfc0f0af47590f79712754080f5e3e46039438ba1c5548e38e06,0,4,562395,0,0,0,236,0,0,0,0,6,951044.69,5,14405.585,0,14405.577,ff3613beee47558f2d21c938f901c706ce80fc4d8bb965acdd531c41,294900.32999999996,False,-641738.7829999999,11034.592999999999,31.00804127301315,76.59940918747833,1.5
+24,24,37,Aggregate,AGG,"
+Description: Groups records together based on a GROUP BY or aggregate function (e.g. sum()).Output: ['l_returnflag', 'l_linestatus', 'sum(l_quantity)', 'sum(l_extendedprice)', ""sum((l_extendedprice * ('1'::numeric - l_discount)))"", ""sum(((l_extendedprice * ('1'::numeric - l_discount)) * ('1'::numeric + l_tax)))"", 'avg(l_quantity)', 'avg(l_extendedprice)', 'avg(l_discount)', 'count(*)']
+Partial Mode: Finalize
+Strategy: Sorted
+Group key: ['lineitem.l_returnflag', 'lineitem.l_linestatus']",d8893e27feea3d9fa1921f8047fe762fb60b78ea8ebf0ccf0b702c8d,0,4,562423,0,0,0,236,0,0,0,0,6,952048.88,1,14545.303,0,14414.093,ff3613beee47558f2d21c938f901c706ce80fc4d8bb965acdd531c41,1004.1900000000605,False,-936630.597,139.71800000000076,0.10547672720334071,0.960571257951799,1.5
+25,25,33,Index Scan,Lineitem,"
+Description: Finds relevant records based on an Index. Index Scans perform 2 read operations: one to read the index and another to read the actual value from the table.",338f433aa55b13214fa3e715a5d711038489be0effe50685f67a3033,0,7,200,0,0,0,9,0,0,0,0,78,2.13,48,0.021,0,0.018,03a2e83dac066ac77b397abbda0cef9c5214ecf3d7003f178e7dcc4d,2.13,False,0.018,0.021,100.0,100.0,11.142857142857142
+26,26,27,Seq Scan,Lineitem_1,"
+Description: Finds relevant records by sequentially scanning the input record set. When reading from a table, Seq Scans (unlike Index Scans) perform a single read operation (only the table is read).",093fa727b4696933e74eaa780ae47fb4708886a365e49d0694e96efb,0,29999795,2811975,0,0,0,9,0,0,0,0,29999796,862392.96,5,10945.515,0,0.333,03a2e83dac066ac77b397abbda0cef9c5214ecf3d7003f178e7dcc4d,862392.96,False,0.333,10945.515,100.0,100.0,1.000000033333561
+27,27,28,Aggregate,AGG,"
+Description: Groups records together based on a GROUP BY or aggregate function (e.g. sum()).Output: ['lineitem_1.l_orderkey']
+Partial Mode: Simple
+Strategy: Hashed
+Group key: ['lineitem_1.l_orderkey']",80ee3e5c281226a00eab22600e0ce91d23686f6d4e164b116f861525,0,7500000,2811975,0,0,0,4,0,0,937290,536445,128421,1018170.87,5,57525.046,0,37408.135,03a2e83dac066ac77b397abbda0cef9c5214ecf3d7003f178e7dcc4d,155777.91000000003,False,-824984.825,46579.531,15.299780674338093,80.97260973941681,58.4016632793702
+28,28,32,Having,AGG*,"
+Description: Filter relation to hold only relevant records.Filter condition: (sum(lineitem_1.l_quantity) > '313'::numeric)",7c9a7060a9909c3cfc585ca6d0c6f2d8dd40afde291f21b4d4e05fbb,0,48,2811975,0,0,0,4,0,0,937290,536445,128421,1018170.87,5,57525.046,0,37408.135,03a2e83dac066ac77b397abbda0cef9c5214ecf3d7003f178e7dcc4d,0.0,False,-980762.735,0.0,0.0,0.0,2675.4375
+29,29,31,Seq Scan,Customer,"
+Description: Finds relevant records by sequentially scanning the input record set. When reading from a table, Seq Scans (unlike Index Scans) perform a single read operation (only the table is read).",895c138c3976a8303b733c2d99101e80ecda8ffca4fe25539668c21f,0,150000,17915,0,0,0,23,0,0,0,0,241935,20334.35,5,91.01,0,0.028,03a2e83dac066ac77b397abbda0cef9c5214ecf3d7003f178e7dcc4d,20334.35,False,0.028,91.01,100.0,100.0,1.6129
+30,30,31,Seq Scan,Orders,"
+Description: Finds relevant records by sequentially scanning the input record set. When reading from a table, Seq Scans (unlike Index Scans) perform a single read operation (only the table is read).",5c6dc6de65a6425a67690697be735c9bbd1d29a1ecd9e4aa2791a60b,0,1500000,130460,0,0,0,20,0,0,0,0,1875000,149210.0,5,544.514,0,0.038,03a2e83dac066ac77b397abbda0cef9c5214ecf3d7003f178e7dcc4d,149210.0,False,0.038,544.514,100.0,100.0,1.25
+31,31,32,Hash Join,Customer ⋈ Orders,"
+Description: Joins to record sets by hashing one of them (using a Hash Scan).Inner Join with (orders.o_custkey = customer.c_custkey)",cb70ae0c056598a36c51aae2537fc76ca09ba60005433f9bfd78bb85,0,1500000,148387,0,0,0,39,0,0,0,0,1875000,185648.17,5,2372.785,0,220.981,03a2e83dac066ac77b397abbda0cef9c5214ecf3d7003f178e7dcc4d,36438.17000000001,False,-148989.019,1828.2709999999997,19.627540632369286,77.05169242051007,1.25
+32,32,33,Hash Join,AGG* ⋈ Customer ⋈ Orders,"
+Description: Joins to record sets by hashing one of them (using a Hash Scan).Inner Join with (orders.o_orderkey = lineitem_1.l_orderkey)",60e2d4cb6d5b44118feeb4d2e2943b48197452f8297509c67c7f3b67,0,10,2960362,0,0,0,43,0,0,937290,536445,32105,1211630.39,5,60421.229,0,58116.9,03a2e83dac066ac77b397abbda0cef9c5214ecf3d7003f178e7dcc4d,193459.5199999999,False,-960053.97,2896.1829999999973,15.966875839091484,4.793320241797792,3210.5
+33,33,34,Nested Loop,Lineitem ⋈ AGG* ⋈ Customer ⋈ Orders,"
+Description: Merges two record sets by looping through every record in the first set and trying to find a match in the second set. All matching records are returned.Inner Join",72bc23f2ee507751ac50cb54065376f5bb108ee4e0f53290c60d477d,0,336,2960678,0,0,0,44,0,0,937290,536445,513681,1603831.0,1,61880.423,0,60476.172,03a2e83dac066ac77b397abbda0cef9c5214ecf3d7003f178e7dcc4d,392200.6100000001,False,-1151154.2179999999,1459.1940000000031,24.45398611200308,2.3580866601380586,1528.8125
+34,34,35,Aggregate,AGG,"
+Description: Groups records together based on a GROUP BY or aggregate function (e.g. sum()).Output: ['customer.c_name', 'customer.c_custkey', 'orders.o_orderkey', 'orders.o_orderdate', 'orders.o_totalprice', 'sum(lineitem.l_quantity)']
+Partial Mode: Simple
+Strategy: Sorted
+Group key: ['orders.o_totalprice', 'orders.o_orderdate', 'customer.c_name', 'customer.c_custkey', 'orders.o_orderkey']",2340bfe8b05e78606d442c75158876cfe00c9910e06c4c337e19a155,0,48,2960678,0,0,0,71,0,0,937290,536445,513681,1617957.23,1,61882.146,0,60477.616,03a2e83dac066ac77b397abbda0cef9c5214ecf3d7003f178e7dcc4d,14126.229999999981,False,-1543353.384,1.7229999999981374,0.8730904462783594,0.002784324900429499,10701.6875
+35,35,36,Limit,LIMIT 48,"
+Description: Returns a specified number of rows from a record set.LIMIT: 48",0dd12943c52c71dbe76d4ef6891e6698be5567b278ced384278f11e2,0,48,2960678,0,0,0,71,0,0,937290,536445,100,1215112.46,1,61882.456,0,60477.912,03a2e83dac066ac77b397abbda0cef9c5214ecf3d7003f178e7dcc4d,-402844.77,False,-1557479.318,0.3099999999976717,-33.15287952853352,0.0005009497360571334,2.0833333333333335

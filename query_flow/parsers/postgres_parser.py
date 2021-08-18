@@ -49,11 +49,14 @@ class PostgresParser(DBParser):
 
     description_dict = {
         'Append': 'Used in a UNION to merge multiple record sets by appending them together.',
+        'Merge Append': 'Used in a UNION to merge pre-sorted multiple record sets by appending them together.',
         'Limit': 'Returns a specified number of rows from a record set.',
         'Hash Join': 'Joins to record sets by hashing one of them (using a Hash Scan).',
         'Aggregate': 'Groups records together based on a GROUP BY or aggregate function (e.g. sum()).',
-        'Hashaggregate': 'Groups records together based on a GROUP BY or aggregate function (e.g. sum()). Hash Aggregate uses a hash to first organize the records by a key.',
         'Seq Scan': 'Finds relevant records by sequentially scanning the input record set. When reading from a table, Seq Scans (unlike Index Scans) perform a single read operation (only the table is read).',
+        'Values Scan': "Scan the literal VALUES clause.",
+        'Sample Scan': "Finds relevant records and returns a random sample of it.",
+        'Function Scan': 'Scans the result of a set-returning functions.',
         'Where': 'Filter relation to hold only relevant records.',
         'Having': 'Filter relation to hold only relevant records.',
         'Sort': 'Sorts a record set based on the specified sort key.',
@@ -69,6 +72,7 @@ class PostgresParser(DBParser):
         'Unique': 'Remove duplicated rows from a record set.',
         'WindowAgg': 'Calculate window function according to the OVER statements.',
         'Result': 'A Relation primitive',
+        'SetOp': 'Combines two datasets for set operations like UNION, INTERSECT, and EXCEPT.',
         'Subquery Scan': 'A Subquery Scan is for scanning the output of a sub-query in the range table.'
     }
 
@@ -87,12 +91,15 @@ class PostgresParser(DBParser):
             'Bitmap Index Scan': self.parse_scan,
             'Index Scan': self.parse_scan,
             'Index Only Scan': self.parse_scan,
+            'Values Scan': self.parse_scan,
+            'Sample Scan': self.parse_scan,
+            'Function Scan': self.parse_scan,
             'Append': self.parse_append,
+            'Merge Append': self.parse_append,
             'Hash Join': self.parse_join,
             'Merge Join': self.parse_join,
             'Nested Loop': self.parse_join,
             'Aggregate': self.parse_aggregate,
-            'Hashaggregate': self.parse_aggregate,
             'Hash': self.parse_hash,
             'Gather': self.parse_gather,
             'Gather Merge': self.parse_gather,
@@ -100,6 +107,7 @@ class PostgresParser(DBParser):
             'Unique': self.parse_unique,
             'Result': self.parse_result,
             'WindowAgg': self.parse_window,
+            'SetOp': self.parse_set_op
         }
 
     @DBParser.parse_default_decor
@@ -137,9 +145,10 @@ class PostgresParser(DBParser):
         >>> p.parse_append(1000, {"Node Type": "Append"})
         ([ParsedNode(source=9999, target=1000, operation_type='Append', label='UNION ALL', label_metadata='')], 9999)
         """
+
         return {
-            'label': 'UNION ALL',
-            'label_metadata': '',
+            'label': "UNION ALL",
+            'label_metadata': f"Sort Key: {itemgetter('Sort Key')(execution_node)}" if "Sort Key" in execution_node else "",
         }
 
     @DBParser.parse_default_decor
@@ -152,6 +161,19 @@ class PostgresParser(DBParser):
         return {
             'label': 'WINDOW',
             'label_metadata': '',
+        }
+
+    @DBParser.parse_default_decor
+    def parse_set_op(self, execution_node):
+        """
+        >>> p = PostgresParser(True)
+        >>> p.parse_set_op(1000, {"Node Type": "SetOp", "Strategy": "Hashed", "Command": "Intersect All"})
+        ([ParsedNode(source=9999, target=1000, operation_type='SetOp', label='SetOp', label_metadata='Strategy:Hashed\\nCommand:Intersect All\\n')], 9999)
+        """
+        return {
+            'label': 'SetOp',
+            'label_metadata': f'Strategy:{execution_node["Strategy"]}\n' +
+                              f'Command:{execution_node["Command"]}\n'
         }
 
     @DBParser.parse_default_decor
@@ -182,13 +204,19 @@ class PostgresParser(DBParser):
     def parse_gather(self, execution_node):
         """
         >>> p = PostgresParser(True)
-        >>> p.parse_gather(1000, {"Node Type": "Gather"})
-        ([ParsedNode(source=9999, target=1000, operation_type='Gather', label='Gather', label_metadata='')], 9999)
+        >>> p.parse_gather(1000, {"Node Type": "Gather", "Workers Launched": 2, "Workers Planned": 2})
+        ([ParsedNode(source=9999, target=1000, operation_type='Gather', label='Gather', label_metadata='Workers Planned:2\\nWorkers Launched:2\\n')], 9999)
         """
-        return {
+        res = {
             'label': 'Gather',
-            'label_metadata': '',
+            'label_metadata': f'Workers Planned:{execution_node["Workers Planned"]}\n'
         }
+
+        for optional_col in ["Workers Launched", "Single Copy"]:
+            if optional_col in execution_node:
+                res["label_metadata"] += f'{optional_col}:{execution_node[optional_col]}\n'
+
+        return res
 
     @DBParser.parse_default_decor
     def parse_hash(self, execution_node):
@@ -197,10 +225,16 @@ class PostgresParser(DBParser):
         >>> p.parse_hash(1000, {"Node Type": "Hash", "Parent Relationship": "Inner"})
         ([ParsedNode(source=9999, target=1000, operation_type='Hash', label='HASH', label_metadata='')], 9999)
         """
-        return {
+        res = {
             'label': 'HASH',
-            'label_metadata': '',
+            'label_metadata': ""
         }
+
+        for optional_col in ["Hash Batches", "Hash Buckets", "Original Hash Batches", "Original Hash Buckets", "Peak Memory Usage"]:
+            if optional_col in execution_node:
+                res["label_metadata"] += f'{optional_col}:{execution_node[optional_col]}\n'
+
+        return res
 
     @DBParser.parse_default_decor
     def parse_join(self, execution_node):
@@ -208,10 +242,10 @@ class PostgresParser(DBParser):
         >>> p = PostgresParser(True)
 
         >>> p.parse_join(1000, {"Node Type": "Nested Loop",  "Join Type": "Inner", "Join Filter": "(crew.title_id = titles.title_id)"})
-        ([ParsedNode(source=9999, target=1000, operation_type='Nested Loop', label='JOIN', label_metadata='Inner join with (crew.title_id = titles.title_id)')], 9999)
+        ([ParsedNode(source=9999, target=1000, operation_type='Nested Loop', label='JOIN', label_metadata='Inner Join with (crew.title_id = titles.title_id)')], 9999)
 
         >>> p.parse_join(1000, {"Node Type": "Hash Join",  "Join Type": "Inner", "Join Filter": "(crew.person_id = people.person_id)"})
-        ([ParsedNode(source=9998, target=1000, operation_type='Hash Join', label='JOIN', label_metadata='Inner join with (crew.person_id = people.person_id)')], 9998)
+        ([ParsedNode(source=9998, target=1000, operation_type='Hash Join', label='JOIN', label_metadata='Inner Join with (crew.person_id = people.person_id)')], 9998)
         """
         cond_key = [
             key for key in execution_node.keys(
@@ -219,7 +253,7 @@ class PostgresParser(DBParser):
         ]
         metadata = f"{execution_node['Join Type']} Join"
         if cond_key:
-            metadata += f" with {' '.join(execution_node[cond_key[0]])}"
+            metadata += f" with {itemgetter(cond_key[0])(execution_node)}"
         return {
             'label': 'JOIN',
             'label_metadata': metadata,
@@ -242,9 +276,13 @@ class PostgresParser(DBParser):
 
         def parse_naive_scan(execution_node):
             res = {
-                'label': execution_node.get('Index Name', execution_node.get('Relation Name', '')).title(),
+                'label': execution_node.get('Alias', execution_node.get('Index Name', execution_node.get('Relation Name', ''))).title(),
                 'label_metadata': ''
             }
+
+            if 'Function Call' in execution_node:
+                res['label_metadata'] += f'Function Call: {execution_node["Function Call"]}'
+
             if 'Actual Rows' in execution_node:
                 res['actual_rows'] = execution_node['Actual Rows'] + \
                     execution_node.get('Rows Removed by Filter', 0)
@@ -285,8 +323,8 @@ class PostgresParser(DBParser):
     def parse_aggregate(self):
         """
         >>> p = PostgresParser(True)
-        >>> p.parse_aggregate(9996, {"Node Type": "Hashaggregate", "Actual Rows": 3, "Filter": "(count(1) > 5)", "Rows Removed by Filter": 34,  "Group Key": ["titles.genres"], "Output": ["titles.genres"]})
-        ([ParsedNode(source=9999, target=9996, operation_type='Having', label='AGG*', label_metadata='Filter condition: (count(1) > 5)'), ParsedNode(source=9998, target=9999, operation_type='Hashaggregate', label='AGG', label_metadata="Group key: ['titles.genres']\\nOutput: ['titles.genres']")], 9998)
+        >>> p.parse_aggregate(9996, {"Node Type": "aggregate", "Actual Rows": 3, "Filter": "(count(1) > 5)", "Rows Removed by Filter": 34,  "Group Key": ["titles.genres"], "Output": ["titles.genres"], "Partial Mode": "Simple", "Strategy": "Plain"})
+        ([ParsedNode(source=9999, target=9996, operation_type='Having', label='AGG*', label_metadata='Filter condition: (count(1) > 5)'), ParsedNode(source=9998, target=9999, operation_type='aggregate', label='AGG', label_metadata="Output: ['titles.genres']\\nPartial Mode: Simple\\nStrategy: Plain\\nGroup key: ['titles.genres']")], 9998)
         """
 
         def parse_having(execution_node):
@@ -299,8 +337,11 @@ class PostgresParser(DBParser):
         def parse_naive_aggregate(execution_node):
             res = {
                 'label': 'AGG',
-                'label_metadata': f"Output: {itemgetter('Output')(execution_node)}\n"
+                'label_metadata': f"Output: {itemgetter('Output')(execution_node)}\n" +
+                                  f"Partial Mode: {execution_node['Partial Mode']}\n" +
+                                  f"Strategy: {execution_node['Strategy']}\n"
             }
+
             if 'Group Key' in execution_node:
                 res['label_metadata'] += f"Group key: {itemgetter('Group Key')(execution_node)}"
             if 'Actual Rows' in execution_node:

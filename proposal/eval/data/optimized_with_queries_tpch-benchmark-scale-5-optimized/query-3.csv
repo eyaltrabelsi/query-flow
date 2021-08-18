@@ -1,0 +1,19 @@
+,source,target,operation_type,label,label_metadata,node_hash,shared_read_blocks,actual_rows,shared_hit_blocks,shared_dirtied_blocks,local_read_blocks,local_hit_blocks,plan_width,local_written_blocks,local_dirtied_blocks,temp_written_blocks,temp_read_blocks,plan_rows,total_cost,actual_loops,actual_total_time,shared_written_blocks,actual_startup_time,query_hash,estimated_cost,redundent_operation,actual_startup_duration,actual_duration,estimated_cost_pct,actual_duration_pct,actual_plan_rows_ratio
+0,0,3,Seq Scan,Customer,"
+Description: Finds relevant records by sequentially scanning the input record set. When reading from a table, Seq Scans (unlike Index Scans) perform a single read operation (only the table is read).",895c138c3976a8303b733c2d99101e80ecda8ffca4fe25539668c21f,0,750000,17915,0,0,0,4,0,0,0,0,750000,25415.0,1,335.392,0,0.028,d8abb1f0ab5d0048cd55b3c07ae783318177ce09f2b5910e932c347e,25415.0,False,0.028,335.392,100.0,100.0,1.0
+1,1,2,Seq Scan,Orders,"
+Description: Finds relevant records by sequentially scanning the input record set. When reading from a table, Seq Scans (unlike Index Scans) perform a single read operation (only the table is read).",5c6dc6de65a6425a67690697be735c9bbd1d29a1ecd9e4aa2791a60b,0,7500000,130460,0,0,0,8,0,0,0,0,7499250,224210.0,1,5694.047,0,0.029,d8abb1f0ab5d0048cd55b3c07ae783318177ce09f2b5910e932c347e,224210.0,False,0.029,5694.047,100.0,100.0,1.000100010001
+2,2,3,Where,Orders*,"
+Description: Filter relation to hold only relevant records.Filter condition: ((orders.o_comment)::text !~~ '%pending%packages%'::text)",0f693c817f6ff10050e57c4878db93044ffea8cf9b0c208780d609ad,0,7419827,130460,0,0,0,8,0,0,0,0,7499250,224210.0,1,5694.047,0,0.029,d8abb1f0ab5d0048cd55b3c07ae783318177ce09f2b5910e932c347e,0.0,False,-224209.971,0.0,0.0,0.0,1.0107041579271323
+3,3,4,Hash Join,Customer ⋈ Orders*,"
+Description: Joins to record sets by hashing one of them (using a Hash Scan).Right Join with (orders.o_custkey = customer.c_custkey)",6eebcbc321d5b1272375ca2a069bedeed93230aae5dbaec26841961e,0,7669838,148375,0,0,0,8,0,0,0,0,7499250,362114.69,1,12742.454,0,630.995,d8abb1f0ab5d0048cd55b3c07ae783318177ce09f2b5910e932c347e,137904.69,False,-223579.005,7048.407,38.083152605601285,55.31436095433423,1.0227473414008068
+4,4,5,Aggregate,AGG,"
+Description: Groups records together based on a GROUP BY or aggregate function (e.g. sum()).Output: ['customer.c_custkey', 'count(orders.o_orderkey)']
+Partial Mode: Simple
+Strategy: Hashed
+Group key: ['customer.c_custkey']",dab4273e4c7c1530d421e03ba8bc386c1e7e90b3d06b2f0a5a76411e,0,750000,148375,0,0,0,12,0,0,0,0,750000,407110.94,1,17956.705,0,17683.093,d8abb1f0ab5d0048cd55b3c07ae783318177ce09f2b5910e932c347e,44996.25,False,-344431.597,5214.251000000002,11.052576970788355,29.037905339537524,1.0
+5,5,6,Aggregate,AGG,"
+Description: Groups records together based on a GROUP BY or aggregate function (e.g. sum()).Output: ['(count(orders.o_orderkey))', 'count(*)']
+Partial Mode: Simple
+Strategy: Hashed
+Group key: ['count(orders.o_orderkey)']",f8447adca84c4d693e0a4f6c1968d111221e00e8c0a075b32bf1f7bb,0,43,148375,0,0,0,16,0,0,0,0,200,418362.94,1,18163.752,0,18163.744,d8abb1f0ab5d0048cd55b3c07ae783318177ce09f2b5910e932c347e,11252.0,False,-388947.196,207.04699999999866,2.6895307696231407,1.1398911414337667,4.651162790697675

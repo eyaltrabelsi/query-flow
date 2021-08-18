@@ -1,0 +1,15 @@
+,source,target,operation_type,label,label_metadata,node_hash,shared_read_blocks,actual_rows,shared_hit_blocks,shared_dirtied_blocks,local_read_blocks,local_hit_blocks,plan_width,local_written_blocks,local_dirtied_blocks,temp_written_blocks,temp_read_blocks,plan_rows,total_cost,actual_loops,actual_total_time,shared_written_blocks,actual_startup_time,query_hash,estimated_cost,redundent_operation,actual_startup_duration,actual_duration,estimated_cost_pct,actual_duration_pct,actual_plan_rows_ratio
+0,0,1,Seq Scan,Lineitem,"
+Description: Finds relevant records by sequentially scanning the input record set. When reading from a table, Seq Scans (unlike Index Scans) perform a single read operation (only the table is read).",a0ccab0149e24cda520e5e673745d3789407045fc371ddf445db8605,0,5999959,562395,0,0,0,25,0,0,0,0,7384698,656144.36,5,3390.028,0,0.026,bb90d252aeb7561ce415fce915c45b335d0acaea18596a23318f8c8d,656144.36,False,0.026,3390.028,100.0,100.0,1.2307914104079711
+1,1,2,Where,Lineitem*,"
+Description: Filter relation to hold only relevant records.Filter condition: (lineitem.l_shipdate <= '1998-08-29 00:00:00'::timestamp without time zone)",9a597967f7f9bc8def67864117e520be63da544c154eb912b2b14297,0,5907938,562395,0,0,0,25,0,0,0,0,7384698,656144.36,5,3390.028,0,0.026,bb90d252aeb7561ce415fce915c45b335d0acaea18596a23318f8c8d,0.0,False,-656144.334,0.0,0.0,0.0,1.2499620002782696
+2,2,3,Aggregate,AGG,"
+Description: Groups records together based on a GROUP BY or aggregate function (e.g. sum()).Output: ['l_returnflag', 'l_linestatus', 'PARTIAL sum(l_quantity)', 'PARTIAL sum(l_extendedprice)', ""PARTIAL sum((l_extendedprice * ('1'::numeric - l_discount)))"", ""PARTIAL sum(((l_extendedprice * ('1'::numeric - l_discount)) * ('1'::numeric + l_tax)))"", 'PARTIAL avg(l_quantity)', 'PARTIAL avg(l_extendedprice)', 'PARTIAL avg(l_discount)', 'PARTIAL count(*)']
+Partial Mode: Partial
+Strategy: Hashed
+Group key: ['lineitem.l_returnflag', 'lineitem.l_linestatus']",5dfecfc0f0af47590f79712754080f5e3e46039438ba1c5548e38e06,0,4,562395,0,0,0,236,0,0,0,0,6,951532.45,5,14504.583,0,14504.576,bb90d252aeb7561ce415fce915c45b335d0acaea18596a23318f8c8d,295388.08999999997,False,-641639.784,11114.555,31.043406874878514,76.62788375232849,1.5
+3,3,4,Aggregate,AGG,"
+Description: Groups records together based on a GROUP BY or aggregate function (e.g. sum()).Output: ['l_returnflag', 'l_linestatus', 'sum(l_quantity)', 'sum(l_extendedprice)', ""sum((l_extendedprice * ('1'::numeric - l_discount)))"", ""sum(((l_extendedprice * ('1'::numeric - l_discount)) * ('1'::numeric + l_tax)))"", 'avg(l_quantity)', 'avg(l_extendedprice)', 'avg(l_discount)', 'count(*)']
+Partial Mode: Finalize
+Strategy: Sorted
+Group key: ['lineitem.l_returnflag', 'lineitem.l_linestatus']",d8893e27feea3d9fa1921f8047fe762fb60b78ea8ebf0ccf0b702c8d,0,4,562423,0,0,0,236,0,0,0,0,6,952536.64,1,14605.518,0,14511.181,bb90d252aeb7561ce415fce915c45b335d0acaea18596a23318f8c8d,1004.1900000000605,False,-937021.269,100.93499999999949,0.1054227163377212,0.6910744281715958,1.5
