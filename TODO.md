@@ -16,7 +16,7 @@
 - Usage / Docs
 - Examples
 
-7) fix_zero_edge_bug - UI edge size when hovering .replace(0, 1)
+7) fix_zero_edge_bug - UI Bug due to .replace(0, 1)
 
 8) Support easier installations:
 - pypi
