@@ -2,6 +2,7 @@ try:
     from .coloring_utils import sample_colors, color_range
     from .dataframe_sankey_vizualizer import DataFrameSankeyVizualizer
 except ImportError:
+
     # Support running doctests not as a module
     from dataframe_sankey_vizualizer import DataFrameSankeyVizualizer  # type: ignore
     from coloring_utils import sample_colors, color_range  # type: ignore
@@ -20,9 +21,12 @@ class QueryVizualizer(DataFrameSankeyVizualizer):
         'source', 'target', 'label', 'query_hash', 'node_hash',
         'label_metadata', 'operation_type', 'redundent_operation',
     ])
-
+    # TODO remove from here and change abstraction
     supported_metrics = {
         'actual_rows': ' Rows',
+        'nodeOutputRows': ' Rows',
+        'nodeOutputDataSize': ' GB',
+        'nodeCpuTime': ' Seconds',
         'actual_startup_duration': ' Seconds',
         'actual_duration': ' Seconds',
         'actual_duration_pct': ' Percent',
@@ -44,7 +48,7 @@ class QueryVizualizer(DataFrameSankeyVizualizer):
         'Limit': 'khaki',
         'Nested Loop': 'mediumseagreen',
         'Where': 'deepskyblue',
-    }
+    } #TODO remove it
     special_cases_link_colors = {'empty': 'red', 'redundant': 'coral'}
 
     def __init__(self, parser, is_colored_nodes=False, node_colors=None):

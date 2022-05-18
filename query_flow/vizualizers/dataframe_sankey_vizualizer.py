@@ -36,20 +36,17 @@ class DataFrameSankeyVizualizer(ABC):
     def special_cases_link_colors(self):
         pass
 
-    def vizualize(self, dfs, metrics, title, open_=True, plot_together=True):
+    def vizualize(self, dfs, metrics, title, open_=True):
         metrics = metrics or self.default_metrics.keys()
+        # TODO change metric from UI
         assert all(
             metric in self.supported_metrics.keys() for metric in
             metrics
         ), f'The only supported metrics are {self.supported_metrics}'
 
-        if plot_together:
-            flow_df = self._prepare_dfs_for_sankey(dfs, metrics)
-            self._plot_sankey(flow_df, metrics, title, open_)
-        else:
-            for metric in metrics:
-                flow_df = self._prepare_dfs_for_sankey(dfs, [metric])
-                self._plot_sankey(flow_df, [metric], title, open_)
+        flow_df = self._prepare_dfs_for_sankey(dfs, metrics)
+        self._plot_sankey(flow_df, metrics, title, open_)
+
 
     def _plot_sankey(self, flow_df, metrics, title, open_):
         data_trace = dict(
@@ -75,28 +72,30 @@ class DataFrameSankeyVizualizer(ABC):
         layout = dict(
             title=f"{title}-{','.join(metrics)}",
             font=dict(size=10),
-            height=750,
+            height=2000, #TODO fix this too look good on all type of sizes
             updatemenus=[
                 dict(
                     y=0.6,
                     buttons=[
                         dict(
-                            label='Horizontal', method='restyle',
-                            args=['orientation', 'h'],
-                        ),
-                        dict(
                             label='Vertical', method='restyle',
                             args=['orientation', 'v'],
                         ),
+                        dict(
+                            label='Horizontal', method='restyle',
+                            args=['orientation', 'h'],
+                        ),
+
                     ],
                 ),
             ],
         )
-        if open_:
+        if open_: #TODO change this to two functions
             plot(
                 dict(data=[data_trace], layout=layout),
                 validate=False,
                 filename=f"{title}-{','.join(metrics)}.html",
+                image_width=8000,
                 auto_open=False,
             )
         else:
@@ -104,7 +103,7 @@ class DataFrameSankeyVizualizer(ABC):
                 dict(data=[data_trace], layout=layout),
                 validate=False,
                 filename=f"{title}-{','.join(metrics)}.html",
-            )
+            ) #todo refactor
 
     def _prepare_dfs_for_sankey(self, flow_dfs, metrics):
         if isinstance(flow_dfs, collections.Sequence):

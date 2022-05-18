@@ -1,0 +1,257 @@
+Query Plan
+{
+  "fragments" : [ {
+    "id" : "1",
+    "stageStats" : {
+      "totalCpuTime" : "98.01ms",
+      "inputRows" : "17038 rows",
+      "inputDataSize" : "716.14kB",
+      "scannedDataSize" : "0B",
+      "stdDevInputRows" : "0.00",
+      "outputRows" : "17038 rows",
+      "outputDataSize" : "433.29kB"
+    },
+    "outputLayout" : "expr_71",
+    "logicalPlan" : {
+      "1" : [ {
+        "name" : "LocalExchange",
+        "identifier" : "[ROUND_ROBIN] ()",
+        "outputs" : [ "expr_71" ],
+        "details" : "",
+        "distributedNodeStats" : {
+          "nodeCpuTime" : "1.00ms",
+          "nodeCpuFraction" : "0.19%",
+          "nodeOutputRows" : "17038 rows",
+          "nodeOutputDataSize" : "433.29kB",
+          "operatorInputRowsStats" : [ {
+            "nodeInputRows" : "8519.00",
+            "nodeInputRowsStdDev" : "1.69%"
+          } ]
+        },
+        "children" : [ {
+          "name" : "Project",
+          "identifier" : "[]",
+          "outputs" : [ "publisher" ],
+          "details" : "",
+          "distributedNodeStats" : {
+            "nodeCpuTime" : "5.00ms",
+            "nodeCpuFraction" : "0.97%",
+            "nodeOutputRows" : "8375 rows",
+            "nodeOutputDataSize" : "211.86kB",
+            "operatorInputRowsStats" : [ {
+              "nodeInputRows" : "8375.00",
+              "nodeInputRowsStdDev" : "0.00%"
+            } ]
+          },
+          "children" : [ {
+            "name" : "DistinctLimit",
+            "identifier" : "[10000][$hashvalue]",
+            "outputs" : [ "publisher", "$hashvalue" ],
+            "details" : "",
+            "distributedNodeStats" : {
+              "nodeCpuTime" : "11.00ms",
+              "nodeCpuFraction" : "2.13%",
+              "nodeOutputRows" : "8375 rows",
+              "nodeOutputDataSize" : "585.04kB",
+              "operatorInputRowsStats" : [ {
+                "nodeInputRows" : "8375.00",
+                "nodeInputRowsStdDev" : "0.00%"
+              } ]
+            },
+            "children" : [ {
+              "name" : "LocalExchange",
+              "identifier" : "[SINGLE] ()",
+              "outputs" : [ "publisher", "$hashvalue" ],
+              "details" : "",
+              "distributedNodeStats" : {
+                "nodeCpuTime" : "7.00ms",
+                "nodeCpuFraction" : "1.35%",
+                "nodeOutputRows" : "8375 rows",
+                "nodeOutputDataSize" : "350.90kB",
+                "operatorInputRowsStats" : [ {
+                  "nodeInputRows" : "2093.75",
+                  "nodeInputRowsStdDev" : "80.05%"
+                } ]
+              },
+              "children" : [ {
+                "name" : "RemoteSource",
+                "identifier" : "[2]",
+                "outputs" : [ "publisher", "$hashvalue_74" ],
+                "details" : "",
+                "distributedNodeStats" : {
+                  "nodeCpuTime" : "8.00ms",
+                  "nodeCpuFraction" : "1.55%",
+                  "nodeOutputRows" : "8375 rows",
+                  "nodeOutputDataSize" : "350.90kB",
+                  "operatorInputRowsStats" : [ {
+                    "nodeInputRows" : "2093.75",
+                    "nodeInputRowsStdDev" : "80.05%"
+                  } ]
+                },
+                "children" : [ ]
+              } ]
+            } ]
+          } ]
+        }, {
+          "name" : "Project",
+          "identifier" : "[]",
+          "outputs" : [ "publisher_16" ],
+          "details" : "",
+          "distributedNodeStats" : {
+            "nodeCpuTime" : "8.00ms",
+            "nodeCpuFraction" : "1.55%",
+            "nodeOutputRows" : "8663 rows",
+            "nodeOutputDataSize" : "221.43kB",
+            "operatorInputRowsStats" : [ {
+              "nodeInputRows" : "8663.00",
+              "nodeInputRowsStdDev" : "0.00%"
+            } ]
+          },
+          "children" : [ {
+            "name" : "DistinctLimit",
+            "identifier" : "[10000][$hashvalue_76]",
+            "outputs" : [ "publisher_16", "$hashvalue_76" ],
+            "details" : "",
+            "distributedNodeStats" : {
+              "nodeCpuTime" : "10.00ms",
+              "nodeCpuFraction" : "1.93%",
+              "nodeOutputRows" : "8663 rows",
+              "nodeOutputDataSize" : "664.87kB",
+              "operatorInputRowsStats" : [ {
+                "nodeInputRows" : "8663.00",
+                "nodeInputRowsStdDev" : "0.00%"
+              } ]
+            },
+            "children" : [ {
+              "name" : "LocalExchange",
+              "identifier" : "[SINGLE] ()",
+              "outputs" : [ "publisher_16", "$hashvalue_76" ],
+              "details" : "",
+              "distributedNodeStats" : {
+                "nodeCpuTime" : "10.00ms",
+                "nodeCpuFraction" : "1.93%",
+                "nodeOutputRows" : "8663 rows",
+                "nodeOutputDataSize" : "365.25kB",
+                "operatorInputRowsStats" : [ {
+                  "nodeInputRows" : "2165.75",
+                  "nodeInputRowsStdDev" : "67.09%"
+                } ]
+              },
+              "children" : [ {
+                "name" : "RemoteSource",
+                "identifier" : "[3]",
+                "outputs" : [ "publisher_16", "$hashvalue_77" ],
+                "details" : "",
+                "distributedNodeStats" : {
+                  "nodeCpuTime" : "10.00ms",
+                  "nodeCpuFraction" : "1.93%",
+                  "nodeOutputRows" : "8663 rows",
+                  "nodeOutputDataSize" : "365.25kB",
+                  "operatorInputRowsStats" : [ {
+                    "nodeInputRows" : "2165.75",
+                    "nodeInputRowsStdDev" : "67.09%"
+                  } ]
+                },
+                "children" : [ ]
+              } ]
+            } ]
+          } ]
+        } ]
+      } ]
+    }
+  }, {
+    "id" : "2",
+    "stageStats" : {
+      "totalCpuTime" : "206.18ms",
+      "inputRows" : "561915 rows",
+      "inputDataSize" : "10.88MB",
+      "scannedDataSize" : "1003.21kB",
+      "stdDevInputRows" : "280957.50",
+      "outputRows" : "8375 rows",
+      "outputDataSize" : "350.90kB"
+    },
+    "outputLayout" : "publisher, $hashvalue_75",
+    "logicalPlan" : {
+      "1" : [ {
+        "name" : "DistinctLimitPartial",
+        "identifier" : "[10000][$hashvalue_75]",
+        "outputs" : [ "publisher", "$hashvalue_75" ],
+        "details" : "",
+        "distributedNodeStats" : {
+          "nodeCpuTime" : "71.00ms",
+          "nodeCpuFraction" : "13.73%",
+          "nodeOutputRows" : "8375 rows",
+          "nodeOutputDataSize" : "350.90kB",
+          "operatorInputRowsStats" : [ {
+            "nodeInputRows" : "280957.50",
+            "nodeInputRowsStdDev" : "100.00%"
+          } ]
+        },
+        "children" : [ {
+          "name" : "ScanProject",
+          "identifier" : "[table = awsdatacatalog:HiveTableHandle{schemaName=live_funnel, tableName=parquet_internal_crm_for_bi, analyzePartitionValues=Optional.empty}, grouped = false]",
+          "outputs" : [ "publisher", "$hashvalue_75" ],
+          "details" : "$hashvalue_75 := \"combine_hash\"(bigint '0', COALESCE(\"$operator$hash_code\"(\"publisher\"), 0))\nLAYOUT: live_funnel.parquet_internal_crm_for_bi\npublisher := publisher:string:13:REGULAR\npartition_date:date:-1:PARTITION_KEY\n    :: [[2022-04-01]]\nupsolver_schema_version:int:-1:PARTITION_KEY\n    :: [[1]]\nInput: 561915 rows (10.88MB), Filtered: 0.00%\n",
+          "distributedNodeStats" : {
+            "nodeCpuTime" : "136.00ms",
+            "nodeCpuFraction" : "26.31%",
+            "nodeOutputRows" : "561915 rows",
+            "nodeOutputDataSize" : "15.70MB",
+            "operatorInputRowsStats" : [ {
+              "nodeInputRows" : "280957.50",
+              "nodeInputRowsStdDev" : "100.00%"
+            } ]
+          },
+          "children" : [ ]
+        } ]
+      } ]
+    }
+  }, {
+    "id" : "3",
+    "stageStats" : {
+      "totalCpuTime" : "239.68ms",
+      "inputRows" : "718482 rows",
+      "inputDataSize" : "14.05MB",
+      "scannedDataSize" : "1.25MB",
+      "stdDevInputRows" : "359241.00",
+      "outputRows" : "8663 rows",
+      "outputDataSize" : "365.25kB"
+    },
+    "outputLayout" : "publisher_16, $hashvalue_78",
+    "logicalPlan" : {
+      "1" : [ {
+        "name" : "DistinctLimitPartial",
+        "identifier" : "[10000][$hashvalue_78]",
+        "outputs" : [ "publisher_16", "$hashvalue_78" ],
+        "details" : "",
+        "distributedNodeStats" : {
+          "nodeCpuTime" : "83.00ms",
+          "nodeCpuFraction" : "16.05%",
+          "nodeOutputRows" : "8663 rows",
+          "nodeOutputDataSize" : "365.25kB",
+          "operatorInputRowsStats" : [ {
+            "nodeInputRows" : "239494.00",
+            "nodeInputRowsStdDev" : "141.42%"
+          } ]
+        },
+        "children" : [ {
+          "name" : "ScanProject",
+          "identifier" : "[table = awsdatacatalog:HiveTableHandle{schemaName=live_funnel, tableName=parquet_internal_crm_for_bi, analyzePartitionValues=Optional.empty}, grouped = false]",
+          "outputs" : [ "publisher_16", "$hashvalue_78" ],
+          "details" : "$hashvalue_78 := \"combine_hash\"(bigint '0', COALESCE(\"$operator$hash_code\"(\"publisher_16\"), 0))\nLAYOUT: live_funnel.parquet_internal_crm_for_bi\npublisher_16 := publisher:string:13:REGULAR\npartition_date:date:-1:PARTITION_KEY\n    :: [[2022-05-01]]\nupsolver_schema_version:int:-1:PARTITION_KEY\n    :: [[1]]\nInput: 718482 rows (14.05MB), Filtered: 0.00%\n",
+          "distributedNodeStats" : {
+            "nodeCpuTime" : "157.00ms",
+            "nodeCpuFraction" : "30.37%",
+            "nodeOutputRows" : "718482 rows",
+            "nodeOutputDataSize" : "20.22MB",
+            "operatorInputRowsStats" : [ {
+              "nodeInputRows" : "239494.00",
+              "nodeInputRowsStdDev" : "141.42%"
+            } ]
+          },
+          "children" : [ ]
+        } ]
+      } ]
+    }
+  } ]
+}

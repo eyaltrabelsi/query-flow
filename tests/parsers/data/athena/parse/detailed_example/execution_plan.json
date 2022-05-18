@@ -1,0 +1,332 @@
+Query Plan
+{
+  "fragments" : [ {
+    "id" : "1",
+    "stageStats" : {
+      "totalCpuTime" : "122.25ms",
+      "inputRows" : "5583 rows",
+      "inputDataSize" : "227.99kB",
+      "scannedDataSize" : "0B",
+      "stdDevInputRows" : "610.41",
+      "outputRows" : "5583 rows",
+      "outputDataSize" : "227.99kB"
+    },
+    "outputLayout" : "expr_2, date, expr_3, count",
+    "logicalPlan" : {
+      "1" : [ {
+        "name" : "LocalMerge",
+        "identifier" : "[expr_2 ASC_NULLS_LAST, date ASC_NULLS_LAST, expr_3 ASC_NULLS_LAST]",
+        "outputs" : [ "expr_2", "date", "expr_3", "count" ],
+        "details" : "",
+        "distributedNodeStats" : {
+          "nodeCpuTime" : "15.00ms",
+          "nodeCpuFraction" : "0.00%",
+          "nodeOutputRows" : "5583 rows",
+          "nodeOutputDataSize" : "227.99kB",
+          "operatorInputRowsStats" : [ {
+            "nodeInputRows" : "46.53",
+            "nodeInputRowsStdDev" : "361.39%"
+          } ]
+        },
+        "children" : [ {
+          "name" : "PartialSort",
+          "identifier" : "[expr_2 ASC_NULLS_LAST, date ASC_NULLS_LAST, expr_3 ASC_NULLS_LAST]",
+          "outputs" : [ "expr_2", "date", "expr_3", "count" ],
+          "details" : "",
+          "distributedNodeStats" : {
+            "nodeCpuTime" : "85.00ms",
+            "nodeCpuFraction" : "0.00%",
+            "nodeOutputRows" : "5583 rows",
+            "nodeOutputDataSize" : "227.99kB",
+            "operatorInputRowsStats" : [ {
+              "nodeInputRows" : "46.53",
+              "nodeInputRowsStdDev" : "361.39%"
+            } ]
+          },
+          "children" : [ {
+            "name" : "RemoteSource",
+            "identifier" : "[2]",
+            "outputs" : [ "expr_2", "date", "expr_3", "count" ],
+            "details" : "",
+            "distributedNodeStats" : {
+              "nodeCpuTime" : "2.00ms",
+              "nodeCpuFraction" : "0.00%",
+              "nodeOutputRows" : "5583 rows",
+              "nodeOutputDataSize" : "227.99kB",
+              "operatorInputRowsStats" : [ {
+                "nodeInputRows" : "46.53",
+                "nodeInputRowsStdDev" : "361.39%"
+              } ]
+            },
+            "children" : [ ]
+          } ]
+        } ]
+      } ]
+    }
+  }, {
+    "id" : "2",
+    "stageStats" : {
+      "totalCpuTime" : "525.15ms",
+      "inputRows" : "272472 rows",
+      "inputDataSize" : "13.22MB",
+      "scannedDataSize" : "0B",
+      "stdDevInputRows" : "805.04",
+      "outputRows" : "5583 rows",
+      "outputDataSize" : "227.99kB"
+    },
+    "outputLayout" : "expr_2, date, expr_3, count",
+    "logicalPlan" : {
+      "1" : [ {
+        "name" : "Project",
+        "identifier" : "[]",
+        "outputs" : [ "expr_2", "date", "expr_3", "count" ],
+        "details" : "",
+        "distributedNodeStats" : {
+          "nodeCpuTime" : "39.00ms",
+          "nodeCpuFraction" : "0.00%",
+          "nodeOutputRows" : "5583 rows",
+          "nodeOutputDataSize" : "227.99kB",
+          "operatorInputRowsStats" : [ {
+            "nodeInputRows" : "46.53",
+            "nodeInputRowsStdDev" : "11.43%"
+          } ]
+        },
+        "children" : [ {
+          "name" : "Aggregate(FINAL)[expr_2, date, expr_3][$hashvalue]",
+          "identifier" : "",
+          "outputs" : [ "expr_2", "date", "expr_3", "$hashvalue", "count" ],
+          "details" : "count := \"count\"(\"count_24\")\n",
+          "distributedNodeStats" : {
+            "nodeCpuTime" : "244.00ms",
+            "nodeCpuFraction" : "0.01%",
+            "nodeOutputRows" : "5583 rows",
+            "nodeOutputDataSize" : "277.05kB",
+            "operatorInputRowsStats" : [ {
+              "nodeInputRows" : "2270.60",
+              "nodeInputRowsStdDev" : "16.44%"
+            } ]
+          },
+          "children" : [ {
+            "name" : "LocalExchange",
+            "identifier" : "[HASH][$hashvalue] (\"expr_2\", \"date\", \"expr_3\")",
+            "outputs" : [ "expr_2", "date", "expr_3", "count_24", "$hashvalue" ],
+            "details" : "",
+            "distributedNodeStats" : {
+              "nodeCpuTime" : "132.00ms",
+              "nodeCpuFraction" : "0.00%",
+              "nodeOutputRows" : "272472 rows",
+              "nodeOutputDataSize" : "13.22MB",
+              "operatorInputRowsStats" : [ {
+                "nodeInputRows" : "2270.60",
+                "nodeInputRowsStdDev" : "54.84%"
+              } ]
+            },
+            "children" : [ {
+              "name" : "RemoteSource",
+              "identifier" : "[3]",
+              "outputs" : [ "expr_2", "date", "expr_3", "count_24", "$hashvalue_25" ],
+              "details" : "",
+              "distributedNodeStats" : {
+                "nodeCpuTime" : "56.00ms",
+                "nodeCpuFraction" : "0.00%",
+                "nodeOutputRows" : "272472 rows",
+                "nodeOutputDataSize" : "13.22MB",
+                "operatorInputRowsStats" : [ {
+                  "nodeInputRows" : "2270.60",
+                  "nodeInputRowsStdDev" : "54.84%"
+                } ]
+              },
+              "children" : [ ]
+            } ]
+          } ]
+        } ]
+      } ]
+    }
+  }, {
+    "id" : "3",
+    "stageStats" : {
+      "totalCpuTime" : "17.36m",
+      "inputRows" : "1103144687 rows",
+      "inputDataSize" : "57.56GB",
+      "scannedDataSize" : "0B",
+      "stdDevInputRows" : "12857691.96",
+      "outputRows" : "272472 rows",
+      "outputDataSize" : "13.22MB"
+    },
+    "outputLayout" : "expr_2, date, expr_3, count_24, $hashvalue_31",
+    "logicalPlan" : {
+      "1" : [ {
+        "name" : "Aggregate(PARTIAL)[expr_2, date, expr_3][$hashvalue_31]",
+        "identifier" : "",
+        "outputs" : [ "expr_2", "date", "expr_3", "$hashvalue_31", "count_24" ],
+        "details" : "count_24 := \"count\"(*)\n",
+        "distributedNodeStats" : {
+          "nodeCpuTime" : "54.22s",
+          "nodeCpuFraction" : "1.54%",
+          "nodeOutputRows" : "272472 rows",
+          "nodeOutputDataSize" : "13.22MB",
+          "operatorInputRowsStats" : [ {
+            "nodeInputRows" : "4124531.71",
+            "nodeInputRowsStdDev" : "57.09%"
+          } ]
+        },
+        "children" : [ {
+          "name" : "Project",
+          "identifier" : "[]",
+          "outputs" : [ "expr_2", "date", "expr_3", "$hashvalue_31" ],
+          "details" : "$hashvalue_31 := \"combine_hash\"(\"combine_hash\"(\"combine_hash\"(bigint '0', COALESCE(\"$operator$hash_code\"(\"expr_2\"), 0)), COALESCE(\"$operator$hash_code\"(\"date\"), 0)), COALESCE(\"$operator$hash_code\"(\"expr_3\"), 0))\n",
+          "distributedNodeStats" : {
+            "nodeCpuTime" : "29.97s",
+            "nodeCpuFraction" : "0.85%",
+            "nodeOutputRows" : "494943805 rows",
+            "nodeOutputDataSize" : "18.91GB",
+            "operatorInputRowsStats" : [ {
+              "nodeInputRows" : "4124531.71",
+              "nodeInputRowsStdDev" : "57.09%"
+            } ]
+          },
+          "children" : [ {
+            "name" : "Project",
+            "identifier" : "[]",
+            "outputs" : [ "expr_2", "date", "expr_3" ],
+            "details" : "expr_2 := (CASE WHEN ((\"bac\" IS NULL) OR (\"bac\" = CAST('' AS varchar))) THEN CAST('No vertical' AS varchar) ELSE \"bac\" END)\ndate := \"date\"(\"concat\"(\"concat\"(\"concat\"(\"concat\"(\"year\", CAST('-' AS varchar)), \"month\"), CAST('-' AS varchar)), \"day\"))\nexpr_3 := (CASE \"bac\" WHEN CAST('Game>Casino>Slots' AS varchar) THEN true WHEN CAST('Game>Casino>Bingo' AS varchar) THEN true WHEN CAST('Game>Real Money>Bingo' AS varchar) THEN true WHEN CAST('Game>Casino>Poker' AS varchar) THEN true WHEN CAST('Game>Cards>Solitaire' AS varchar) THEN true WHEN CAST('Game>Casino>Scratch Cards' AS varchar) THEN true WHEN CAST('Game>Adventure>Coin Master' AS varchar) THEN true WHEN CAST('Game>Board>DiceGame' AS varchar) THEN true WHEN CAST('Entertainment>Rewards>Other' AS varchar) THEN true ELSE false END)\n",
+            "distributedNodeStats" : {
+              "nodeCpuTime" : "12.40m",
+              "nodeCpuFraction" : "21.07%",
+              "nodeOutputRows" : "494943805 rows",
+              "nodeOutputDataSize" : "14.77GB",
+              "operatorInputRowsStats" : [ {
+                "nodeInputRows" : "4124531.71",
+                "nodeInputRowsStdDev" : "57.09%"
+              } ]
+            },
+            "children" : [ {
+              "name" : "InnerJoin",
+              "identifier" : "[(\"publisher\" = \"app_id\")][$hashvalue_26, $hashvalue_28]",
+              "outputs" : [ "year", "month", "day", "bac" ],
+              "details" : "Distribution: PARTITIONED\ndynamicFilterAssignments = {app_id -> 460}",
+              "distributedNodeStats" : {
+                "nodeCpuTime" : "3.30m",
+                "nodeCpuFraction" : "5.60%",
+                "nodeOutputRows" : "494943805 rows",
+                "nodeOutputDataSize" : "27.67GB",
+                "operatorInputRowsStats" : [ ]
+              },
+              "children" : [ {
+                "name" : "RemoteSource",
+                "identifier" : "[4]",
+                "outputs" : [ "publisher", "year", "month", "day", "$hashvalue_26" ],
+                "details" : "",
+                "distributedNodeStats" : {
+                  "nodeCpuTime" : "13.68s",
+                  "nodeCpuFraction" : "0.39%",
+                  "nodeOutputRows" : "1103117404 rows",
+                  "nodeOutputDataSize" : "57.56GB",
+                  "operatorInputRowsStats" : [ {
+                    "nodeInputRows" : "9192645.03",
+                    "nodeInputRowsStdDev" : "36.34%"
+                  } ]
+                },
+                "children" : [ ]
+              }, {
+                "name" : "LocalExchange",
+                "identifier" : "[HASH][$hashvalue_28] (\"app_id\")",
+                "outputs" : [ "app_id", "bac", "$hashvalue_28" ],
+                "details" : "",
+                "distributedNodeStats" : {
+                  "nodeCpuTime" : "101.00ms",
+                  "nodeCpuFraction" : "0.00%",
+                  "nodeOutputRows" : "27283 rows",
+                  "nodeOutputDataSize" : "1.70MB",
+                  "operatorInputRowsStats" : [ {
+                    "nodeInputRows" : "227.36",
+                    "nodeInputRowsStdDev" : "92.37%"
+                  } ]
+                },
+                "children" : [ {
+                  "name" : "RemoteSource",
+                  "identifier" : "[5]",
+                  "outputs" : [ "app_id", "bac", "$hashvalue_29" ],
+                  "details" : "",
+                  "distributedNodeStats" : {
+                    "nodeCpuTime" : "37.00ms",
+                    "nodeCpuFraction" : "0.00%",
+                    "nodeOutputRows" : "27283 rows",
+                    "nodeOutputDataSize" : "1.70MB",
+                    "operatorInputRowsStats" : [ {
+                      "nodeInputRows" : "227.36",
+                      "nodeInputRowsStdDev" : "92.37%"
+                    } ]
+                  },
+                  "children" : [ ]
+                } ]
+              } ]
+            } ]
+          } ]
+        } ]
+      } ]
+    }
+  }, {
+    "id" : "4",
+    "stageStats" : {
+      "totalCpuTime" : "41.08m",
+      "inputRows" : "1103117404 rows",
+      "inputDataSize" : "24.70GB",
+      "scannedDataSize" : "2.08GB",
+      "stdDevInputRows" : "2921327.91",
+      "outputRows" : "1103117404 rows",
+      "outputDataSize" : "33.95GB"
+    },
+    "outputLayout" : "publisher, year, month, day, $hashvalue_27",
+    "logicalPlan" : {
+      "1" : [ {
+        "name" : "ScanFilterProject",
+        "identifier" : "[table = awsdatacatalog:HiveTableHandle{schemaName=dmp_data, tableName=inventory_discovery_us_east, analyzePartitionValues=Optional.empty}, grouped = false, filterPredicate = (CAST(\"date\"(\"concat\"(\"concat\"(\"concat\"(\"concat\"(\"year\", CAST('-' AS varchar)), \"month\"), CAST('-' AS varchar)), \"day\")) AS timestamp with time zone) > \"$literal$timestamp with time zone\"(6756123193606144)), dynamicFilter = {460 -> \"publisher\"}]",
+        "outputs" : [ "publisher", "year", "month", "day", "$hashvalue_27" ],
+        "details" : "$hashvalue_27 := \"combine_hash\"(bigint '0', COALESCE(\"$operator$hash_code\"(\"publisher\"), 0))\nLAYOUT: dmp_data.inventory_discovery_us_east\nmonth := month:string:-1:PARTITION_KEY\n    :: [[04], [05]]\nyear := year:string:-1:PARTITION_KEY\n    :: [[2022]]\npublisher := publisher:string:44:REGULAR\nday := day:string:-1:PARTITION_KEY\n    :: [[01], [02], [03], [04], [05], [06], [07], [09], [10], [11], [12], [13], [14], [15], [16], [17], [18], [19], [20], [21], [22], [23], [24], [25], [26], [27], [28], [29], [30]]\nInput: 1103117404 rows (24.70GB), Filtered: 0.00%\n",
+        "distributedNodeStats" : {
+          "nodeCpuTime" : "41.06m",
+          "nodeCpuFraction" : "69.75%",
+          "nodeOutputRows" : "1103117404 rows",
+          "nodeOutputDataSize" : "33.95GB",
+          "operatorInputRowsStats" : [ {
+            "nodeInputRows" : "951783.78",
+            "nodeInputRowsStdDev" : "69.64%"
+          } ]
+        },
+        "children" : [ ]
+      } ]
+    }
+  }, {
+    "id" : "5",
+    "stageStats" : {
+      "totalCpuTime" : "27.72s",
+      "inputRows" : "9202005 rows",
+      "inputDataSize" : "1.71GB",
+      "scannedDataSize" : "1.71GB",
+      "stdDevInputRows" : "147523.28",
+      "outputRows" : "27283 rows",
+      "outputDataSize" : "1.70MB"
+    },
+    "outputLayout" : "app_id, bac, $hashvalue_30",
+    "logicalPlan" : {
+      "1" : [ {
+        "name" : "ScanFilterProject",
+        "identifier" : "[table = awsdatacatalog:HiveTableHandle{schemaName=temp_tables, tableName=app_bac_repo, analyzePartitionValues=Optional.empty}, grouped = false, filterPredicate = (\"bac\" LIKE '%Game%')]",
+        "outputs" : [ "app_id", "bac", "$hashvalue_30" ],
+        "details" : "$hashvalue_30 := \"combine_hash\"(bigint '0', COALESCE(\"$operator$hash_code\"(\"app_id\"), 0))\nLAYOUT: temp_tables.app_bac_repo\nbac := bac:string:7:REGULAR\napp_id := app_id:string:0:REGULAR\nInput: 9202005 rows (1.71GB), Filtered: 99.70%\n",
+        "distributedNodeStats" : {
+          "nodeCpuTime" : "27.70s",
+          "nodeCpuFraction" : "0.78%",
+          "nodeOutputRows" : "27283 rows",
+          "nodeOutputDataSize" : "1.70MB",
+          "operatorInputRowsStats" : [ {
+            "nodeInputRows" : "161438.68",
+            "nodeInputRowsStdDev" : "6.23%"
+          } ]
+        },
+        "children" : [ ]
+      } ]
+    }
+  } ]
+}

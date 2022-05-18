@@ -6,6 +6,7 @@ from typing import Optional
 from typing import Sequence
 
 from query_flow.parsers import postgres_parser
+from query_flow.parsers import athena_parser
 from query_flow.vizualizers import query_vizualizer
 
 if sys.version_info < (3, 8):  # pragma: no cover (<PY38)
@@ -16,8 +17,7 @@ else:  # pragma: no cover (PY38+)
 
 def visualize(args):
     queries = [open(p).read() for p in args.queries]
-    parser = postgres_parser.PostgresParser(is_verbose=args.is_verbose,
-                                            is_compact=args.is_compact,
+    parser = postgres_parser.PostgresParser(is_compact=args.is_compact,
                                             execute_query=args.execute_query)
     query_renderer = query_vizualizer.QueryVizualizer(parser)
     flow_df = query_renderer.get_flow_df(queries, con_str=args.con_str)
@@ -38,8 +38,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     visualize_parser.add_argument('--queries', nargs="+", help='Paths to queries to be used')
     visualize_parser.add_argument('--title', action='store_true', default="", help='Title of the visualization')
     visualize_parser.add_argument('--metrics', nargs="+", help='Metrics to be visualized.')
-    # visualize_parser.add_argument('--parser', action='store_true', help='Which Database should be used')
-    visualize_parser.add_argument('--is_verbose', action='store_true', default=False, help='Should visualize all type of operations')
+    visualize_parser.add_argument('--parser', action='store_true', help='Which Database should be used')
     visualize_parser.add_argument('--is_compact', action='store_true', default=False, help='Should represent query in a more compact manner')
     visualize_parser.add_argument('--execute_query', action='store_false', default=True, help='Should run the query for more accurate statistics')
 
@@ -55,4 +54,14 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
 
 
 if __name__ == '__main__':
-    exit(main())
+    # exit(main())
+    #             limit looks wierd       limit looks wierd
+    for plan in ["execution_plan_1.json", "execution_plan_2.json",
+                 "execution_plan_3.json", "execution_plan_4.json", "execution_plan_5.json", "execution_plan_6.json", "execution_plan_7.json", "execution_plan_8.json"]:
+        execution_plan = open(f"../tests/parsers/data/athena/parse/{plan}").read()
+        execution_plan_extractor = lambda node: eval(node.replace("Query Plan",""))
+        p = athena_parser.AthenaParser(execute_query=False)
+        flow_df = p.parse([execution_plan_extractor(execution_plan)])
+        query_renderer = query_vizualizer.QueryVizualizer(p)
+        # query_renderer.vizualize(flow_df, title=plan, metrics=["nodeOutputDataSize"], open_=True)
+        query_renderer.vizualize(flow_df, title=plan, metrics=["nodeCpuTime"], open_=True)

@@ -1,31 +1,20 @@
 import logging
 from operator import itemgetter
 
-import numpy as np
+
+from sqlalchemy import create_engine
 
 try:
     from .db_parser import DBParser
+    from ..misc import calc_precentage, calc_ratio
 except ImportError:
     # Support running doctests not as a module
     from db_parser import DBParser  # type: ignore
+    from query_flow.misc import calc_precentage, calc_ratio   # type: ignore
 
 __all__ = ['PostgresParser']
 
 
-def calc_precentage(series, comsum_series):
-    return series / comsum_series * 100
-
-
-def calc_ratio(df, column_a, column_b):
-    def calc_row(this, other):
-        if this == other:
-            return 1
-        elif this == 0 or other == 0:
-            return np.inf
-        else:
-            return max([this, other]) / min([this, other])
-
-    return df.apply(lambda x: calc_row(x[column_a], x[column_b]), axis=1)
 
 
 class PostgresParser(DBParser):
@@ -33,10 +22,10 @@ class PostgresParser(DBParser):
     explain_analyze_prefix = 'EXPLAIN(ANALYZE, COSTS, VERBOSE, BUFFERS, FORMAT JSON)'
     query_prefix = None
 
-    node_type_indicator = 'Node Type'
+    node_type_extractor = lambda _, node: node['Node Type']
     next_operator_indicator = 'Plans'
-    first_operator_indicator = 'Plan'
-    filter_indicator = 'Filter'
+    execution_plan_extractor = lambda _, node: node['Plan'] # TODO add this
+    filter_indicator = lambda _, node: 'Filter' in node
 
     supported_metrics = frozenset([
         'Actual Rows', 'Actual Total Time', 'Plan Rows', 'Plan Width', 'Total Cost',
@@ -45,7 +34,7 @@ class PostgresParser(DBParser):
         'Local Hit Blocks', 'Local Dirtied Blocks', 'Local Read Blocks',
         'Local Written Blocks', 'Temp Written Blocks', 'Temp Read Blocks',
     ])
-    verbose_ops = {'Hash', 'Gather', 'Gather Merge', 'Sort', 'WindowAgg', }
+    verbose_ops = {}
 
     description_dict = {
         'Append': 'Used in a UNION to merge multiple record sets by appending them together.',
@@ -76,10 +65,20 @@ class PostgresParser(DBParser):
         'Subquery Scan': 'A Subquery Scan is for scanning the output of a sub-query in the range table.'
     }
 
-    def __init__(self, is_verbose=False, is_compact=False, execute_query=True):
+    def __init__(self, is_compact=False, execute_query=True):
         self.query_prefix = self.explain_analyze_prefix if execute_query else self.explain_prefix
 
-        super().__init__(is_verbose, is_compact)
+        super().__init__(is_compact)
+
+    def add_supported_metrics(self, parsed_node, execution_node):
+        for metric in self.supported_metrics:
+            if metric in execution_node:
+                normalized_key = metric.replace(' ', '_').lower()
+                parsed_node[normalized_key] = execution_node[metric]
+        return parsed_node
+
+    def normalize_metric(self, metric):
+        return metric.replace(' ', '_').lower()
 
     @property
     def strategy_dict(self):
@@ -109,6 +108,16 @@ class PostgresParser(DBParser):
             'WindowAgg': self.parse_window,
             'SetOp': self.parse_set_op
         }
+
+    def from_query(self, query, con_str):
+        with create_engine(con_str).connect() as con:
+            explain_analyze_query = f"{self.query_prefix} {query.replace('%', '%%')}"
+            execution_plan = (
+                con.execute(explain_analyze_query)
+                .fetchone()
+                .values()[0][0]
+            )
+            return self.execution_plan_extractor(execution_plan)
 
     @DBParser.parse_default_decor
     def parse_limit(self, execution_node):
@@ -352,6 +361,7 @@ class PostgresParser(DBParser):
         yield parse_having
         yield parse_naive_aggregate
 
+    # TODO
     def enrich_stats(self, df):
 
         df['estimated_cost'] = df['total_cost']
@@ -376,9 +386,6 @@ class PostgresParser(DBParser):
 
             if row.operation_type in ['Unique', 'Where', 'Having'] and 'actual_startup_time' in df.columns:
                 df.loc[i, 'redundent_operation'] = False
-                #     (
-                #     sum(relevant_ops.actual_rows) == row.actual_rows
-                # )
 
             if any(op in row.label.split(' ') for op in self.label_replacement.keys()):
                 df.loc[i, 'label'] = self.label_replacement[row.label].join(

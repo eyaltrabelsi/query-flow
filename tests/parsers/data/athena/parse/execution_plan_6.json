@@ -1,0 +1,193 @@
+Query Plan
+{
+  "fragments" : [ {
+    "id" : "1",
+    "stageStats" : {
+      "totalCpuTime" : "304.12us",
+      "inputRows" : "10 rows",
+      "inputDataSize" : "90B",
+      "scannedDataSize" : "0B",
+      "stdDevInputRows" : "0.00",
+      "outputRows" : "10 rows",
+      "outputDataSize" : "90B"
+    },
+    "outputLayout" : "count",
+    "logicalPlan" : {
+      "1" : [ {
+        "name" : "Limit",
+        "identifier" : "[10]",
+        "outputs" : [ "count" ],
+        "details" : "",
+        "distributedNodeStats" : {
+          "nodeCpuTime" : "0.00ns",
+          "nodeCpuFraction" : "0.00%",
+          "nodeOutputRows" : "10 rows",
+          "nodeOutputDataSize" : "90B",
+          "operatorInputRowsStats" : [ {
+            "nodeInputRows" : "10.00",
+            "nodeInputRowsStdDev" : "0.00%"
+          } ]
+        },
+        "children" : [ {
+          "name" : "LocalExchange",
+          "identifier" : "[SINGLE] ()",
+          "outputs" : [ "count" ],
+          "details" : "",
+          "distributedNodeStats" : {
+            "nodeCpuTime" : "0.00ns",
+            "nodeCpuFraction" : "0.00%",
+            "nodeOutputRows" : "10 rows",
+            "nodeOutputDataSize" : "90B",
+            "operatorInputRowsStats" : [ {
+              "nodeInputRows" : "2.50",
+              "nodeInputRowsStdDev" : "173.21%"
+            } ]
+          },
+          "children" : [ {
+            "name" : "RemoteSource",
+            "identifier" : "[2]",
+            "outputs" : [ "count" ],
+            "details" : "",
+            "distributedNodeStats" : {
+              "nodeCpuTime" : "0.00ns",
+              "nodeCpuFraction" : "0.00%",
+              "nodeOutputRows" : "10 rows",
+              "nodeOutputDataSize" : "90B",
+              "operatorInputRowsStats" : [ {
+                "nodeInputRows" : "2.50",
+                "nodeInputRowsStdDev" : "173.21%"
+              } ]
+            },
+            "children" : [ ]
+          } ]
+        } ]
+      } ]
+    }
+  }, {
+    "id" : "2",
+    "stageStats" : {
+      "totalCpuTime" : "71.66ms",
+      "inputRows" : "561915 rows",
+      "inputDataSize" : "10.18MB",
+      "scannedDataSize" : "0B",
+      "stdDevInputRows" : "280957.50",
+      "outputRows" : "10 rows",
+      "outputDataSize" : "90B"
+    },
+    "outputLayout" : "count",
+    "logicalPlan" : {
+      "1" : [ {
+        "name" : "LimitPartial",
+        "identifier" : "[10]",
+        "outputs" : [ "expr", "partition_date", "count" ],
+        "details" : "",
+        "distributedNodeStats" : {
+          "nodeCpuTime" : "0.00ns",
+          "nodeCpuFraction" : "0.00%",
+          "nodeOutputRows" : "10 rows",
+          "nodeOutputDataSize" : "90B",
+          "operatorInputRowsStats" : [ {
+            "nodeInputRows" : "31.88",
+            "nodeInputRowsStdDev" : "264.58%"
+          } ]
+        },
+        "children" : [ {
+          "name" : "Project",
+          "identifier" : "[]",
+          "outputs" : [ "expr", "partition_date", "count" ],
+          "details" : "",
+          "distributedNodeStats" : {
+            "nodeCpuTime" : "0.00ns",
+            "nodeCpuFraction" : "0.00%",
+            "nodeOutputRows" : "255 rows",
+            "nodeOutputDataSize" : "4.73kB",
+            "operatorInputRowsStats" : [ {
+              "nodeInputRows" : "4681.25",
+              "nodeInputRowsStdDev" : "264.58%"
+            } ]
+          },
+          "children" : [ {
+            "name" : "Window",
+            "identifier" : "[partition by (<partition_date>)][$hashvalue]",
+            "outputs" : [ "expr", "partition_date", "$hashvalue", "count" ],
+            "details" : "count := count(\"expr\") RANGE UNBOUNDED_PRECEDING CURRENT_ROW\n",
+            "distributedNodeStats" : {
+              "nodeCpuTime" : "48.00ms",
+              "nodeCpuFraction" : "30.57%",
+              "nodeOutputRows" : "37450 rows",
+              "nodeOutputDataSize" : "1.00MB",
+              "operatorInputRowsStats" : [ {
+                "nodeInputRows" : "70239.38",
+                "nodeInputRowsStdDev" : "264.58%"
+              } ]
+            },
+            "children" : [ {
+              "name" : "LocalExchange",
+              "identifier" : "[HASH][$hashvalue] (\"partition_date\")",
+              "outputs" : [ "expr", "partition_date", "$hashvalue" ],
+              "details" : "",
+              "distributedNodeStats" : {
+                "nodeCpuTime" : "15.00ms",
+                "nodeCpuFraction" : "9.55%",
+                "nodeOutputRows" : "561915 rows",
+                "nodeOutputDataSize" : "10.18MB",
+                "operatorInputRowsStats" : [ {
+                  "nodeInputRows" : "70239.38",
+                  "nodeInputRowsStdDev" : "159.36%"
+                } ]
+              },
+              "children" : [ {
+                "name" : "RemoteSource",
+                "identifier" : "[3]",
+                "outputs" : [ "expr", "partition_date", "$hashvalue_5" ],
+                "details" : "",
+                "distributedNodeStats" : {
+                  "nodeCpuTime" : "6.00ms",
+                  "nodeCpuFraction" : "3.82%",
+                  "nodeOutputRows" : "561915 rows",
+                  "nodeOutputDataSize" : "10.18MB",
+                  "operatorInputRowsStats" : [ {
+                    "nodeInputRows" : "70239.38",
+                    "nodeInputRowsStdDev" : "159.36%"
+                  } ]
+                },
+                "children" : [ ]
+              } ]
+            } ]
+          } ]
+        } ]
+      } ]
+    }
+  }, {
+    "id" : "3",
+    "stageStats" : {
+      "totalCpuTime" : "88.92ms",
+      "inputRows" : "561915 rows",
+      "inputDataSize" : "2.68kB",
+      "scannedDataSize" : "0B",
+      "stdDevInputRows" : "280957.50",
+      "outputRows" : "561915 rows",
+      "outputDataSize" : "14.96kB"
+    },
+    "outputLayout" : "expr, partition_date, $hashvalue_6",
+    "logicalPlan" : {
+      "1" : [ {
+        "name" : "ScanProject",
+        "identifier" : "[table = awsdatacatalog:HiveTableHandle{schemaName=live_funnel, tableName=parquet_internal_crm_for_bi, analyzePartitionValues=Optional.empty}, grouped = false]",
+        "outputs" : [ "expr", "partition_date", "$hashvalue_6" ],
+        "details" : "expr := 1\n$hashvalue_6 := \"combine_hash\"(bigint '0', COALESCE(\"$operator$hash_code\"(\"partition_date\"), 0))\nLAYOUT: live_funnel.parquet_internal_crm_for_bi\npartition_date := partition_date:date:-1:PARTITION_KEY\n    :: [[2022-04-01]]\nupsolver_schema_version:int:-1:PARTITION_KEY\n    :: [[1]]\nInput: 561915 rows (2.68kB), Filtered: 0.00%\n",
+        "distributedNodeStats" : {
+          "nodeCpuTime" : "88.00ms",
+          "nodeCpuFraction" : "56.05%",
+          "nodeOutputRows" : "561915 rows",
+          "nodeOutputDataSize" : "14.96kB",
+          "operatorInputRowsStats" : [ {
+            "nodeInputRows" : "280957.50",
+            "nodeInputRowsStdDev" : "100.00%"
+          } ]
+        },
+        "children" : [ ]
+      } ]
+    }
+  } ]
+}
