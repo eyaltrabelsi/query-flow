@@ -1,11 +1,8 @@
 import hashlib
 import json
 import typing
-from abc import ABC
-from abc import abstractmethod
-from dataclasses import asdict
-from dataclasses import field
-from dataclasses import make_dataclass
+from abc import ABC, abstractmethod
+from dataclasses import asdict, field, make_dataclass
 from functools import wraps
 
 import numpy as np
@@ -21,8 +18,7 @@ class DBParser(ABC):
     max_supported_nodes = 10000
 
     def __init__(self, is_compact=False):
-        assert set(self.strategy_dict.keys()).issubset(
-            set(self.description_dict.keys()))
+        assert set(self.strategy_dict.keys()).issubset(set(self.description_dict.keys()))
         self.is_compact = is_compact
         self.parsed_node_class = self._make_parsed_node()
         self._cleanup_state()
@@ -76,12 +72,12 @@ class DBParser(ABC):
 
     def from_query(self, query, con_str):
         with create_engine(con_str).connect() as con:
+            # SQLALCHEMY doesn't handle % as a regular SQL client so one need to add additional %
             explain_analyze_query = f"{self.query_prefix} {query.replace('%', '%%')}"
-            execution_plan = (
-                con.execute(explain_analyze_query)
-                .fetchone()
-                .values()[0][0]
-            )
+
+            # Grab the execution plan string in case its returned as a single row
+            execution_plan = con.execute(explain_analyze_query).fetchone().values()[0][0]
+
             return self.execution_plan_extractor(execution_plan)
 
     def parse(self, execution_plans):
@@ -92,13 +88,15 @@ class DBParser(ABC):
             # todo refactor
             if 'fragments' in execution_plan:
                 for fragment in reversed(execution_plan['fragments']):
-                    self.parse_node(({'fragment_id': fragment['id'], **fragment['logicalPlan']['1'][0]}),
-                                    target_id=np.nan,
-                                    query_hash=DBParser._hash_execution_plan(execution_plan))
+                    self.parse_node(
+                        ({'fragment_id': fragment['id'], **fragment['logicalPlan']['1'][0]}),
+                        target_id=np.nan,
+                        query_hash=DBParser._hash_execution_plan(execution_plan),
+                    )
             else:
-                self.parse_node(execution_plan,
-                                target_id=np.nan,
-                                query_hash=DBParser._hash_execution_plan(execution_plan))
+                self.parse_node(
+                    execution_plan, target_id=np.nan, query_hash=DBParser._hash_execution_plan(execution_plan)
+                )
 
         flow_df = DBParser.align_source_target_ids(self.flow_df)
         flow_df = self.enrich_stats(flow_df)
@@ -110,10 +108,12 @@ class DBParser(ABC):
         self.max_id = np.int64(self.max_supported_nodes)
 
     def parse_node(self, execution_node, target_id, query_hash):
+        # Parsing current-expression
         node_type = self.node_type_extractor(execution_node)
-
         parsed_nodes, source_id = self.strategy_dict.get(node_type, self.parse_base)(target_id, execution_node)
         parsed_nodes = [dict(asdict(parsed_node), **{'query_hash': query_hash}) for parsed_node in parsed_nodes]
+        # Currently we use state to save already parsed records, a cleaner version will is
+        # provide calculated result as parameter and add return to the  function
         self.flow_df = self.flow_df.append(parsed_nodes, ignore_index=True)
 
         # Recursively parsing sub-expressions
@@ -137,19 +137,23 @@ class DBParser(ABC):
         return self.label_to_id_dict[hash_node]
 
     def _make_parsed_node(self):
-        supported_metrics_fields = [(self.normalize_metric(metric),
-                                     typing.Any,
-                                     field(default=np.nan, repr=False))
-                                    for metric in self.supported_metrics]
-        return make_dataclass('ParsedNode',
-                              [('source', np.int64),
-                               ('target', np.int64),
-                               ('operation_type', str),
-                               ('label', str),
-                               ('label_metadata', str),  # TODO think if needed in here
-                               ('node_hash', str, field(repr=False)),
-                               ('fragment_id', str, field(default='', repr=False)),
-                               *supported_metrics_fields])
+        supported_metrics_fields = [
+            (self.normalize_metric(metric), typing.Any, field(default=np.nan, repr=False))
+            for metric in self.supported_metrics
+        ]
+        return make_dataclass(
+            'ParsedNode',
+            [
+                ('source', np.int64),
+                ('target', np.int64),
+                ('operation_type', str),
+                ('label', str),
+                ('label_metadata', str),  # TODO think if needed in here
+                ('node_hash', str, field(repr=False)),
+                ('fragment_id', str, field(default='', repr=False)),
+                *supported_metrics_fields,
+            ],
+        )
 
     @staticmethod
     def _hash_execution_plan(execution_plan):
@@ -162,7 +166,9 @@ class DBParser(ABC):
         def parse(self, target_id, execution_node):
             specific_attrs = func(self, execution_node)
             defaults_attrs, source_id = self._parse_default(
-                target_id, execution_node, specific_attrs,
+                target_id,
+                execution_node,
+                specific_attrs,
             )
             return [self.parsed_node_class(**{**defaults_attrs, **specific_attrs})], source_id
 
@@ -177,23 +183,31 @@ class DBParser(ABC):
             if self.filter_indicator(execution_node):
                 filter_attrs = filter_func(execution_node)
                 defaults_attrs, source_id = self._parse_default(
-                    target_id, execution_node, filter_attrs,
+                    target_id,
+                    execution_node,
+                    filter_attrs,
                 )
-                filter_node = self.parsed_node_class(**{
-                    **defaults_attrs,
-                    **filter_attrs,
-                })
+                filter_node = self.parsed_node_class(
+                    **{
+                        **defaults_attrs,
+                        **filter_attrs,
+                    }
+                )
                 target_id = source_id
 
             clause_attrs = clause_func(execution_node)
             defaults_attrs, source_id = self._parse_default(
-                target_id, execution_node, clause_attrs,
+                target_id,
+                execution_node,
+                clause_attrs,
             )
 
-            non_filter_node = self.parsed_node_class(**{
-                **defaults_attrs,
-                **clause_attrs,
-            })
+            non_filter_node = self.parsed_node_class(
+                **{
+                    **defaults_attrs,
+                    **clause_attrs,
+                }
+            )
             parsed_node = [filter_node, non_filter_node] if self.filter_indicator(execution_node) else [non_filter_node]
 
             return parsed_node, source_id
@@ -222,15 +236,15 @@ class DBParser(ABC):
 
     @staticmethod
     def align_source_target_ids(flow_df):
-        ids = set(flow_df['source'].dropna()).union(
-            set(flow_df['target'].dropna()))
+        ids = set(flow_df['source'].dropna()).union(set(flow_df['target'].dropna()))
 
-        # Fix in case of fragments
+        # In case of fragments we want to be able to connects fragments to one another
         for index, row in flow_df[flow_df['operation_type'] == 'RemoteSource'].iterrows():  # TODO
             fragment_id_to_look_for = row['label'][-2]
             current_source_id = row['source']
-            flow_df.loc[(flow_df['fragment_id'] == fragment_id_to_look_for) & (
-                flow_df['target'].isna()), 'target'] = current_source_id
+            flow_df.loc[
+                (flow_df['fragment_id'] == fragment_id_to_look_for) & (flow_df['target'].isna()), 'target'
+            ] = current_source_id
 
         # Give last operators the biggest id so no reuse of the same label later
         max_ = max(ids) + 1
@@ -240,12 +254,14 @@ class DBParser(ABC):
 
         # Normalize ids to start with zero
         min_ = min(ids)
-        flow_df = flow_df.assign(
-            target=lambda x: x.target.map(lambda y: y - min_).astype(int),
-            source=lambda x: x.source.map(lambda y: y - min_).astype(int),
-        ) \
-            .sort_values(by='source') \
+        flow_df = (
+            flow_df.assign(
+                target=lambda x: x.target.map(lambda y: y - min_).astype(int),
+                source=lambda x: x.source.map(lambda y: y - min_).astype(int),
+            )
+            .sort_values(by='source')
             .reset_index(drop=True)
+        )
 
         return flow_df
 

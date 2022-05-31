@@ -2,24 +2,31 @@ import collections
 
 import numpy as np
 import pandas as pd
-from plotly.offline import iplot
-from plotly.offline import plot
+from plotly.offline import iplot, plot
 
 try:
-    from .coloring_utils import sample_colors, color_range
+    from query_flow.query_flow.utils.coloring_utils import color_range, sample_colors
 except ImportError:
 
     # Support running doctests not as a module
-    from coloring_utils import sample_colors, color_range  # type: ignore
+    from query_flow.query_flow.utils.coloring_utils import color_range, sample_colors  # type: ignore
 
 __all__ = ['QueryVizualizer']
 
 
-class QueryVizualizer():
-    columns_pks = frozenset([
-        'source', 'target', 'label', 'query_hash', 'node_hash',
-        'label_metadata', 'operation_type', 'redundent_operation',
-    ])
+class QueryVizualizer:
+    columns_pks = frozenset(
+        [
+            'source',
+            'target',
+            'label',
+            'query_hash',
+            'node_hash',
+            'label_metadata',
+            'operation_type',
+            'redundent_operation',
+        ]
+    )
     # TODO remove from here and change abstraction
     supported_metrics = {
         'actual_rows': ' Rows',
@@ -59,8 +66,7 @@ class QueryVizualizer():
             self.node_colors = node_colors
 
     def get_flow_df(self, queries, con_str):
-        execution_plans = [self.parser.from_query(query, con_str)
-                           for query in listify(queries)]
+        execution_plans = [self.parser.from_query(query, con_str) for query in listify(queries)]
         return self.parser.parse(execution_plans)
 
     def _enrich_colors(self, df, metrics):
@@ -68,22 +74,22 @@ class QueryVizualizer():
         queries_base_link_colors = sample_colors(df.query_hash.nunique())
         df['color_link'] = 'silver'
         if len(queries_base_link_colors) > 1:
-            df['color_link'] = df['query_hash'].astype('category').cat.codes.map(
-                lambda code: queries_base_link_colors[code]
+            df['color_link'] = (
+                df['query_hash'].astype('category').cat.codes.map(lambda code: queries_base_link_colors[code])
             )
 
         # Adjusting luminance according to the number of metrics
         for color in df['color_link'].unique():
             adjusted_colors = list(color_range(color, len(metrics)))
-            df.loc[df['color_link'] == color, 'color_link'] = df['variable'].astype('category').cat.codes.map(
-                lambda code: adjusted_colors[code]
+            df.loc[df['color_link'] == color, 'color_link'] = (
+                df['variable'].astype('category').cat.codes.map(lambda code: adjusted_colors[code])
             )
 
         # Apply special case coloring for queries link
-        what_case = df.apply(lambda x: QueryVizualizer._get_case(
-            x['variable'], x['value'], x['redundent_operation']), axis=1)
-        df.loc[what_case != 'default', 'color_link'] = what_case.map(
-            self.special_cases_link_colors)
+        what_case = df.apply(
+            lambda x: QueryVizualizer._get_case(x['variable'], x['value'], x['redundent_operation']), axis=1
+        )
+        df.loc[what_case != 'default', 'color_link'] = what_case.map(self.special_cases_link_colors)
 
         # Apply basic coloring for queries nodes
         if self.is_colored_nodes:
@@ -96,8 +102,7 @@ class QueryVizualizer():
         metrics = metrics or self.default_metrics.keys()
         # TODO change metric from UI
         assert all(
-            metric in self.supported_metrics.keys() for metric in
-            metrics
+            metric in self.supported_metrics.keys() for metric in metrics
         ), f'The only supported metrics are {self.supported_metrics}'
 
         flow_df = self._prepare_dfs_for_sankey(dfs, metrics)
@@ -115,7 +120,6 @@ class QueryVizualizer():
                 color=flow_df['color_node'],
             ),
             link=dict(
-
                 source=flow_df['source'],
                 target=flow_df['target'],
                 value=flow_df['value'].map(np.int64).replace(0, 1),
@@ -132,14 +136,15 @@ class QueryVizualizer():
                     y=0.6,
                     buttons=[
                         dict(
-                            label='Vertical', method='restyle',
+                            label='Vertical',
+                            method='restyle',
                             args=['orientation', 'v'],
                         ),
                         dict(
-                            label='Horizontal', method='restyle',
+                            label='Horizontal',
+                            method='restyle',
                             args=['orientation', 'h'],
                         ),
-
                     ],
                 ),
             ],
@@ -191,4 +196,5 @@ class QueryVizualizer():
 
 if __name__ == '__main__':
     import doctest
+
     doctest.testmod()
