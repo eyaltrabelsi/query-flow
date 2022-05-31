@@ -1,6 +1,13 @@
-source,target,operation_type,actual_rows,label,label_metadata
-0,1,Seq Scan,29,Generes,
-1,4,Where,27,Generes*,Filter condition: generes.kid_safe
-2,3,Seq Scan,7137701,Titles,
-3,4,Where,911257,Titles*,"Filter condition: (titles.premiered >= (date_part('year'::text, (CURRENT_DATE)::timestamp without time zone) - '2'::double precision))"
-4,5,Nested Loop,1338247,Generes* ⋈ Titles*,"Join Filter ('Inner', '(""position""(titles.genres, generes.genere_name) > 0)')"
+source,target,operation_type,label,label_metadata,node_hash,fragment_id,actual_rows,shared_read_blocks,total_cost,shared_written_blocks,local_hit_blocks,plan_rows,shared_hit_blocks,local_read_blocks,local_written_blocks,actual_total_time,local_dirtied_blocks,plan_width,temp_read_blocks,actual_startup_time,shared_dirtied_blocks,temp_written_blocks,actual_loops,query_hash,estimated_cost,redundent_operation,actual_startup_duration,actual_duration,estimated_cost_pct,actual_duration_pct,actual_plan_rows_ratio
+0,1,Seq Scan,Generes,"
+Description: Finds relevant records by sequentially scanning the input record set. When reading from a table, Seq Scans (unlike Index Scans) perform a single read operation (only the table is read).",ea094addea1db73ab35eff33690e22d2197e733280879d0de9254b50,,29,0,21.8,0,0,590,1,0,0,0.024,0,41,0,0.019,0,0,1,e4c6e3a09473e9ed972f2f5bb9e298439133c050caa466fa4dc2db90,21.8,False,0.019,0.024,100.0,100.0,20.344827586206897
+1,2,Where,Generes*,"
+Description: Filter relation to hold only relevant records.Filter condition: generes.kid_safe",a4d62edd7addbdb67d37b946b6bc82838d61c57151e61ca42e133e20,,27,0,21.8,0,0,590,1,0,0,0.024,0,41,0,0.019,0,0,1,e4c6e3a09473e9ed972f2f5bb9e298439133c050caa466fa4dc2db90,0.0,False,-21.781000000000002,0.0,0.0,0.0,21.85185185185185
+2,5,Materialize,Materialize,"
+Description: ",8de9ad88e0615550786c4cf60a26a1ded4b290e09c3b18474b3bd327,,27,0,24.75,0,0,590,1,0,0,0.002,0,41,0,0.0,0,0,911257,e4c6e3a09473e9ed972f2f5bb9e298439133c050caa466fa4dc2db90,2.9499999999999993,False,-21.8,-0.022,11.919191919191917,-1100.0,21.85185185185185
+3,4,Seq Scan,Titles,"
+Description: Finds relevant records by sequentially scanning the input record set. When reading from a table, Seq Scans (unlike Index Scans) perform a single read operation (only the table is read).",d1a40b2d694e5cd4498df2df53650e4ffb9dfd6bbfa550482887c7cf,,7137701,123010,284091.27,0,0,916858,483,0,0,2833.617,0,110,0,17.162,0,0,1,e4c6e3a09473e9ed972f2f5bb9e298439133c050caa466fa4dc2db90,284091.27,False,17.162,2833.617,100.0,100.0,7.784957976044273
+4,5,Where,Titles*,"
+Description: Filter relation to hold only relevant records.Filter condition: (titles.premiered >= (date_part('year'::text, (CURRENT_DATE)::timestamp without time zone) - '2'::double precision))",d8912bc797d607a4d967ac83a9f408afc07dc6841855c76db6698d8b,,911257,123010,284091.27,0,0,916858,483,0,0,2833.617,0,110,0,17.162,0,0,1,e4c6e3a09473e9ed972f2f5bb9e298439133c050caa466fa4dc2db90,0.0,False,-284074.108,0.0,0.0,0.0,1.0061464548420478
+5,6,Nested Loop,Materialize ⋈ Titles*,"
+Description: Merges two record sets by looping through every record in the first set and trying to find a match in the second set. All matching records are returned.Inner Join with (""position""(titles.genres, generes.genere_name) > 0)",11194bd29f704ddfbe73e06bb003247c1a51c70e0ba02f7e7c0cf766,,1338247,123010,9750673.4,0,0,180315407,484,0,0,9691.297,0,151,0,17.222,0,0,1,e4c6e3a09473e9ed972f2f5bb9e298439133c050caa466fa4dc2db90,9466582.13,False,-284074.048,6857.68,97.08644461417404,70.76122009262538,134.74000464787144

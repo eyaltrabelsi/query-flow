@@ -10,6 +10,7 @@ from functools import wraps
 
 import numpy as np
 import pandas as pd
+from sqlalchemy import create_engine
 
 __all__ = ['DBParser']
 
@@ -34,6 +35,10 @@ class DBParser(ABC):
     @property
     @abstractmethod
     def description_dict(self):
+        pass
+
+    @abstractmethod
+    def execution_plan_extractor(self):
         pass
 
     @abstractmethod
@@ -69,24 +74,25 @@ class DBParser(ABC):
     def enrich_stats(self):
         pass
 
-    @abstractmethod
-    def clean_cache(self):
-        pass
-
-    @abstractmethod
-    def from_query(self):
-        pass
+    def from_query(self, query, con_str):
+        with create_engine(con_str).connect() as con:
+            explain_analyze_query = f"{self.query_prefix} {query.replace('%', '%%')}"
+            execution_plan = (
+                con.execute(explain_analyze_query)
+                .fetchone()
+                .values()[0][0]
+            )
+            return self.execution_plan_extractor(execution_plan)
 
     def parse(self, execution_plans):
 
         self._cleanup_state()
         for execution_plan in execution_plans:
-            self.clean_cache()
 
             # todo refactor
-            if "fragments" in execution_plan:
-                for fragment in reversed(execution_plan["fragments"]):
-                    self.parse_node(({"fragment_id": fragment["id"], **fragment["logicalPlan"]["1"][0]}),
+            if 'fragments' in execution_plan:
+                for fragment in reversed(execution_plan['fragments']):
+                    self.parse_node(({'fragment_id': fragment['id'], **fragment['logicalPlan']['1'][0]}),
                                     target_id=np.nan,
                                     query_hash=DBParser._hash_execution_plan(execution_plan))
             else:
@@ -106,7 +112,7 @@ class DBParser(ABC):
     def parse_node(self, execution_node, target_id, query_hash):
         node_type = self.node_type_extractor(execution_node)
 
-        parsed_nodes, source_id = self.strategy_dict[node_type](target_id, execution_node)
+        parsed_nodes, source_id = self.strategy_dict.get(node_type, self.parse_base)(target_id, execution_node)
         parsed_nodes = [dict(asdict(parsed_node), **{'query_hash': query_hash}) for parsed_node in parsed_nodes]
         self.flow_df = self.flow_df.append(parsed_nodes, ignore_index=True)
 
@@ -140,9 +146,9 @@ class DBParser(ABC):
                                ('target', np.int64),
                                ('operation_type', str),
                                ('label', str),
-                               ('label_metadata', str), #TODO think if needed in here
+                               ('label_metadata', str),  # TODO think if needed in here
                                ('node_hash', str, field(repr=False)),
-                               ('fragment_id', str, field(default="", repr=False)),
+                               ('fragment_id', str, field(default='', repr=False)),
                                *supported_metrics_fields])
 
     @staticmethod
@@ -207,24 +213,24 @@ class DBParser(ABC):
             'node_hash': current_hash,
         }
 
-        if "fragment_id" in execution_node:
-            self.last_fragment_id = execution_node.get("fragment_id")
+        if 'fragment_id' in execution_node:
+            self.last_fragment_id = execution_node.get('fragment_id')
             parsed_node['fragment_id'] = self.last_fragment_id
 
         parsed_node = self.add_supported_metrics(parsed_node, execution_node)
         return parsed_node, source_id
 
-    # TODO add test
     @staticmethod
     def align_source_target_ids(flow_df):
         ids = set(flow_df['source'].dropna()).union(
             set(flow_df['target'].dropna()))
 
         # Fix in case of fragments
-        for index, row in flow_df[flow_df['operation_type'] == 'RemoteSource'].iterrows(): #TODO
-            fragment_id_to_look_for = row["label"][-2]
-            current_source_id = row["source"]
-            flow_df.loc[(flow_df["fragment_id"] == fragment_id_to_look_for) & (flow_df["target"].isna()), 'target'] = current_source_id #todo extract fragment_id
+        for index, row in flow_df[flow_df['operation_type'] == 'RemoteSource'].iterrows():  # TODO
+            fragment_id_to_look_for = row['label'][-2]
+            current_source_id = row['source']
+            flow_df.loc[(flow_df['fragment_id'] == fragment_id_to_look_for) & (
+                flow_df['target'].isna()), 'target'] = current_source_id
 
         # Give last operators the biggest id so no reuse of the same label later
         max_ = max(ids) + 1

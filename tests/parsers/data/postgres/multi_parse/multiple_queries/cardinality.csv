@@ -1,25 +1,47 @@
-source,target,operation_type,label,label_metadata,node_hash,shared_hit_blocks,shared_dirtied_blocks,local_read_blocks,actual_rows,shared_written_blocks,local_hit_blocks,temp_read_blocks,local_dirtied_blocks,local_written_blocks,plan_width,plan_rows,total_cost,actual_startup_time,actual_loops,shared_read_blocks,actual_total_time,temp_written_blocks,query_hash,estimated_cost,redundent_operation,actual_startup_duration,actual_duration,estimated_cost_pct,actual_duration_pct,actual_plan_rows_ratio
+source,target,operation_type,label,label_metadata,node_hash,fragment_id,shared_written_blocks,shared_dirtied_blocks,actual_startup_time,actual_rows,local_dirtied_blocks,actual_total_time,local_hit_blocks,total_cost,shared_read_blocks,shared_hit_blocks,local_written_blocks,local_read_blocks,plan_width,temp_read_blocks,temp_written_blocks,plan_rows,actual_loops,query_hash,estimated_cost,redundent_operation,actual_startup_duration,actual_duration,estimated_cost_pct,actual_duration_pct,actual_plan_rows_ratio
 0,1,Seq Scan,People,"
-Description: Finds relevant records by sequentially scanning the input record set. When reading from a table, Seq Scans (unlike Index Scans) perform a single read operation (only the table is read).",7b2ff103133a83b22b41108280f7924a25804f91dc20358b73441a98,96,0,0,3446261,0,0,0,0,0,10,5,141258.61,184.948,3,81930,517.757,0,5efbffb1f4500ee3c0e4fc74265e8e228f96e562accbe32d668534c8,141258.61,False,184.948,517.757,100.0,100.0,689252.2
-1,3,Where,People*,"
-Description: Filter relation to hold only relevant records.Filter condition: (people.name = ANY ('{""Owen Wilson"",""Adam Sandler"",""Jason Segel""}'::text[]))",d8b31b60823399b14a499d111a44012b81e010f4b11a0ab3bfcf0936,96,0,0,3,0,0,0,0,0,10,5,141258.61,184.948,3,81930,517.757,0,5efbffb1f4500ee3c0e4fc74265e8e228f96e562accbe32d668534c8,0.0,False,-141073.66199999998,0.0,0.0,0.0,1.6666666666666667
-2,3,Seq Scan,Crew,"
-Description: Finds relevant records by sequentially scanning the input record set. When reading from a table, Seq Scans (unlike Index Scans) perform a single read operation (only the table is read).",b5f8d79f2d02c6cb19e25b0db815b3b3e5b6a1b31344769b8bad51da,96,0,0,13651901,0,0,0,0,0,20,17064877,566508.77,0.074,3,395764,1503.825,0,5efbffb1f4500ee3c0e4fc74265e8e228f96e562accbe32d668534c8,566508.77,False,0.074,1503.825,100.0,100.0,1.250000054937404
-3,6,Hash Join,People* ⋈ Crew,"
-Description: Joins to record sets by hashing one of them (using a Hash Scan).Inner join with (crew.person_id = people.person_id)",4bd8733b1bc2b93f7a1a0397387e918ea8505da9a1913a05fc33501d,192,0,0,565,0,0,0,0,0,10,21,771760.8,587.014,3,477694,3629.367,0,5efbffb1f4500ee3c0e4fc74265e8e228f96e562accbe32d668534c8,205252.03000000003,False,-565921.756,2125.5420000000004,26.595290924338215,58.565088622892105,26.904761904761905
-4,5,Seq Scan,Titles,"
-Description: Finds relevant records by sequentially scanning the input record set. When reading from a table, Seq Scans (unlike Index Scans) perform a single read operation (only the table is read).",d1a40b2d694e5cd4498df2df53650e4ffb9dfd6bbfa550482887c7cf,96,0,0,2379234,0,0,0,0,0,10,616393,160668.53,0.053,3,123397,493.101,0,5efbffb1f4500ee3c0e4fc74265e8e228f96e562accbe32d668534c8,160668.53,False,0.053,493.101,100.0,100.0,3.8599302717584396
-5,6,Where,Titles*,"
-Description: Filter relation to hold only relevant records.Filter condition: (titles.genres ~~ '%Comedy%'::text)",8a19d9e25a08eb9387a16ac2acc2b2449c55997644e5aebb6d482eec,96,0,0,489076,0,0,0,0,0,10,616393,160668.53,0.053,3,123397,493.101,0,5efbffb1f4500ee3c0e4fc74265e8e228f96e562accbe32d668534c8,0.0,False,-160668.47699999998,0.0,0.0,0.0,1.2603215042242923
-6,13,Hash Join,People* ⋈ Crew ⋈ Titles*,"
-Description: Joins to record sets by hashing one of them (using a Hash Scan).Inner join with (titles.title_id = crew.title_id)",7d2e982f87e51d55ab0b36b9caa748a3c73b2e7b46121c9f9c1c7278,459,0,0,186,0,0,0,0,0,10,5,934741.09,3638.871,3,601091,4190.602,0,5efbffb1f4500ee3c0e4fc74265e8e228f96e562accbe32d668534c8,162980.28999999992,False,-768121.929,561.2349999999997,17.435875211177454,13.3927058689897,37.2
-7,8,Seq Scan,Titles,"
-Description: Finds relevant records by sequentially scanning the input record set. When reading from a table, Seq Scans (unlike Index Scans) perform a single read operation (only the table is read).",d1a40b2d694e5cd4498df2df53650e4ffb9dfd6bbfa550482887c7cf,4572,0,0,2379234,0,0,0,0,0,10,12982,160656.55,0.125,3,118921,399.961,0,62502288e4812082664d01142f6df2843f376ad59d9f77a1d3b78fad,160656.55,False,0.125,399.961,100.0,100.0,183.2717608997073
-8,11,Where,Titles*,"
-Description: Filter relation to hold only relevant records.Filter condition: (titles_1.genres = 'Action'::text)",700a764e216c7c7bb7859778814ffb22ebe7fa0646d78ce108b785ff,4572,0,0,10359,0,0,0,0,0,10,12982,160656.55,0.125,3,118921,399.961,0,62502288e4812082664d01142f6df2843f376ad59d9f77a1d3b78fad,0.0,False,-160656.425,0.0,0.0,0.0,1.2532097692827493
-9,10,Seq Scan,Titles,"
-Description: Finds relevant records by sequentially scanning the input record set. When reading from a table, Seq Scans (unlike Index Scans) perform a single read operation (only the table is read).",d1a40b2d694e5cd4498df2df53650e4ffb9dfd6bbfa550482887c7cf,4540,0,0,7137701,0,0,0,0,0,10,504235,212685.51,0.054,1,118953,1137.667,0,62502288e4812082664d01142f6df2843f376ad59d9f77a1d3b78fad,212685.51,False,0.054,1137.667,100.0,100.0,14.155504873719595
-10,11,Where,Titles*,"
-Description: Filter relation to hold only relevant records.Filter condition: (titles.genres = 'Comedy'::text)",af1d4c524fbe6750788a0c6387105d4874a4eaf79c4b2860c1095410,4540,0,0,513882,0,0,0,0,0,10,504235,212685.51,0.054,1,118953,1137.667,0,62502288e4812082664d01142f6df2843f376ad59d9f77a1d3b78fad,0.0,False,-212685.456,0.0,0.0,0.0,1.0191319523634814
-11,12,Append,Titles* U Titles*,"
-Description: Used in a UNION to merge multiple record sets by appending them together.",6cce3cec56b9dc7b56a0e77516e75ff013bbab2a36be62b96c9b60a9,9112,0,0,544958,0,0,0,0,0,10,535393,385488.75,0.054,1,237874,1600.996,0,62502288e4812082664d01142f6df2843f376ad59d9f77a1d3b78fad,172803.24,False,-212685.456,463.3290000000002,44.82705137309455,28.940047320542973,1.0178653811312437
+Description: Finds relevant records by sequentially scanning the input record set. When reading from a table, Seq Scans (unlike Index Scans) perform a single read operation (only the table is read).",7b2ff103133a83b22b41108280f7924a25804f91dc20358b73441a98,,0,0,184.948,3446261,0,517.757,0,141258.61,81930,96,0,0,10,0,0,5,3,5efbffb1f4500ee3c0e4fc74265e8e228f96e562accbe32d668534c8,141258.61,False,184.948,517.757,100.0,100.0,689252.2
+1,2,Where,People*,"
+Description: Filter relation to hold only relevant records.Filter condition: (people.name = ANY ('{""Owen Wilson"",""Adam Sandler"",""Jason Segel""}'::text[]))",d8b31b60823399b14a499d111a44012b81e010f4b11a0ab3bfcf0936,,0,0,184.948,3,0,517.757,0,141258.61,81930,96,0,0,10,0,0,5,3,5efbffb1f4500ee3c0e4fc74265e8e228f96e562accbe32d668534c8,0.0,False,-141073.66199999998,0.0,0.0,0.0,1.6666666666666667
+2,4,Hash,HASH,"
+Description: Generates a hash table from the records in the input recordset. Hash is used by Hash Join.Hash Batches:1
+Hash Buckets:1024
+Original Hash Batches:1
+Original Hash Buckets:1024
+Peak Memory Usage:72
+",2c2b5ba0417f6588426b84ad8f263127d49ca5d27152e6d33cd180b8,,0,0,517.809,3,0,517.809,0,141258.61,81930,96,0,0,10,0,0,5,3,5efbffb1f4500ee3c0e4fc74265e8e228f96e562accbe32d668534c8,0.0,False,-140740.80099999998,0.05200000000002092,0.0,0.010042312899161838,1.6666666666666667
+3,4,Seq Scan,Crew,"
+Description: Finds relevant records by sequentially scanning the input record set. When reading from a table, Seq Scans (unlike Index Scans) perform a single read operation (only the table is read).",b5f8d79f2d02c6cb19e25b0db815b3b3e5b6a1b31344769b8bad51da,,0,0,0.074,13651901,0,1503.825,0,566508.77,395764,96,0,0,20,0,0,17064877,3,5efbffb1f4500ee3c0e4fc74265e8e228f96e562accbe32d668534c8,566508.77,False,0.074,1503.825,100.0,100.0,1.250000054937404
+4,5,Hash Join,HASH ⋈ Crew,"
+Description: Joins to record sets by hashing one of them (using a Hash Scan).Inner Join with (crew.person_id = people.person_id)",f422a21a5f5a56fdbba906a6a61acd621ed197eb8600f51d814f6632,,0,0,587.014,565,0,3629.367,0,771760.8,477694,192,0,0,10,0,0,21,3,5efbffb1f4500ee3c0e4fc74265e8e228f96e562accbe32d668534c8,205252.03000000003,False,-565921.756,2125.5420000000004,26.595290924338215,58.565088622892105,26.904761904761905
+5,8,Hash,HASH,"
+Description: Generates a hash table from the records in the input recordset. Hash is used by Hash Join.Hash Batches:1
+Hash Buckets:1024
+Original Hash Batches:1
+Original Hash Buckets:1024
+Peak Memory Usage:104
+",bb30dc9fdcede5e4a5f56bde28214ae8307e5542c01bf9993ec9a963,,0,0,3629.91,565,0,3629.91,0,771760.8,477694,192,0,0,10,0,0,21,3,5efbffb1f4500ee3c0e4fc74265e8e228f96e562accbe32d668534c8,0.0,False,-768130.89,0.5429999999996653,0.0,0.014959048571442965,26.904761904761905
+6,7,Seq Scan,Titles,"
+Description: Finds relevant records by sequentially scanning the input record set. When reading from a table, Seq Scans (unlike Index Scans) perform a single read operation (only the table is read).",d1a40b2d694e5cd4498df2df53650e4ffb9dfd6bbfa550482887c7cf,,0,0,0.053,2379234,0,493.101,0,160668.53,123397,96,0,0,10,0,0,616393,3,5efbffb1f4500ee3c0e4fc74265e8e228f96e562accbe32d668534c8,160668.53,False,0.053,493.101,100.0,100.0,3.8599302717584396
+7,8,Where,Titles*,"
+Description: Filter relation to hold only relevant records.Filter condition: (titles.genres ~~ '%Comedy%'::text)",8a19d9e25a08eb9387a16ac2acc2b2449c55997644e5aebb6d482eec,,0,0,0.053,489076,0,493.101,0,160668.53,123397,96,0,0,10,0,0,616393,3,5efbffb1f4500ee3c0e4fc74265e8e228f96e562accbe32d668534c8,0.0,False,-160668.47699999998,0.0,0.0,0.0,1.2603215042242923
+8,9,Hash Join,HASH ⋈ Titles*,"
+Description: Joins to record sets by hashing one of them (using a Hash Scan).Inner Join with (titles.title_id = crew.title_id)",18288270ce859a372f4a230e1097eeada8ebe2c5d1fb65bdfb4220e5,,0,0,3638.871,186,0,4190.602,0,934741.09,601091,459,0,0,10,0,0,5,3,5efbffb1f4500ee3c0e4fc74265e8e228f96e562accbe32d668534c8,162980.28999999992,False,-768121.929,560.692,17.435875211177454,13.379748303465707,37.2
+9,17,Gather,Gather,"
+Description: Collect relevant records from the workers.Workers Planned:2
+Workers Launched:2
+",c1525fbd8b18bd76651a1b5969ff2500e71295f1007b2f88f8e31b93,,0,0,3640.656,558,0,4194.678,0,935742.19,601091,459,0,0,10,0,0,11,1,5efbffb1f4500ee3c0e4fc74265e8e228f96e562accbe32d668534c8,1001.0999999999767,False,-931100.434,4.076000000000022,0.10698459583189006,0.09717074826720959,50.72727272727273
+10,11,Seq Scan,Titles,"
+Description: Finds relevant records by sequentially scanning the input record set. When reading from a table, Seq Scans (unlike Index Scans) perform a single read operation (only the table is read).",d1a40b2d694e5cd4498df2df53650e4ffb9dfd6bbfa550482887c7cf,,0,0,0.125,2379234,0,399.961,0,160656.55,118921,4572,0,0,10,0,0,12982,3,feee68444c997718608af1d135e2b858e086376afbe499fda7e6a1eb,160656.55,False,0.125,399.961,100.0,100.0,183.2717608997073
+11,12,Where,Titles*,"
+Description: Filter relation to hold only relevant records.Filter condition: (titles_1.genres = 'Action'::text)",700a764e216c7c7bb7859778814ffb22ebe7fa0646d78ce108b785ff,,0,0,0.125,10359,0,399.961,0,160656.55,118921,4572,0,0,10,0,0,12982,3,feee68444c997718608af1d135e2b858e086376afbe499fda7e6a1eb,0.0,False,-160656.425,0.0,0.0,0.0,1.2532097692827493
+12,15,Gather,Gather,"
+Description: Collect relevant records from the workers.Workers Planned:2
+Workers Launched:2
+",c1525fbd8b18bd76651a1b5969ff2500e71295f1007b2f88f8e31b93,,0,0,0.356,31076,0,405.079,0,164772.35,118921,4572,0,0,10,0,0,31158,1,feee68444c997718608af1d135e2b858e086376afbe499fda7e6a1eb,4115.8000000000175,False,-160656.194,5.117999999999995,2.497870546848435,1.2634572515484621,1.0026386922383834
+13,14,Seq Scan,Titles,"
+Description: Finds relevant records by sequentially scanning the input record set. When reading from a table, Seq Scans (unlike Index Scans) perform a single read operation (only the table is read).",d1a40b2d694e5cd4498df2df53650e4ffb9dfd6bbfa550482887c7cf,,0,0,0.054,7137701,0,1137.667,0,212685.51,118953,4540,0,0,10,0,0,504235,1,feee68444c997718608af1d135e2b858e086376afbe499fda7e6a1eb,212685.51,False,0.054,1137.667,100.0,100.0,14.155504873719595
+14,15,Where,Titles*,"
+Description: Filter relation to hold only relevant records.Filter condition: (titles.genres = 'Comedy'::text)",af1d4c524fbe6750788a0c6387105d4874a4eaf79c4b2860c1095410,,0,0,0.054,513882,0,1137.667,0,212685.51,118953,4540,0,0,10,0,0,504235,1,feee68444c997718608af1d135e2b858e086376afbe499fda7e6a1eb,0.0,False,-212685.456,0.0,0.0,0.0,1.0191319523634814
+15,16,Append,Gather U Titles*,"
+Description: Used in a UNION to merge multiple record sets by appending them together.",6cce3cec56b9dc7b56a0e77516e75ff013bbab2a36be62b96c9b60a9,,0,0,0.054,544958,0,1600.996,0,385488.75,237874,9112,0,0,10,0,0,535393,1,feee68444c997718608af1d135e2b858e086376afbe499fda7e6a1eb,172803.24,False,-212685.456,463.3290000000002,44.82705137309455,28.940047320542973,1.0178653811312437

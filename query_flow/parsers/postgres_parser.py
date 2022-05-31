@@ -1,8 +1,5 @@
-import logging
 from operator import itemgetter
 
-
-from sqlalchemy import create_engine
 
 try:
     from .db_parser import DBParser
@@ -15,17 +12,11 @@ except ImportError:
 __all__ = ['PostgresParser']
 
 
-
-
 class PostgresParser(DBParser):
     explain_prefix = 'EXPLAIN(COSTS, VERBOSE, FORMAT JSON)'
     explain_analyze_prefix = 'EXPLAIN(ANALYZE, COSTS, VERBOSE, BUFFERS, FORMAT JSON)'
     query_prefix = None
-
-    node_type_extractor = lambda _, node: node['Node Type']
     next_operator_indicator = 'Plans'
-    execution_plan_extractor = lambda _, node: node['Plan'] # TODO add this
-    filter_indicator = lambda _, node: 'Filter' in node
 
     supported_metrics = frozenset([
         'Actual Rows', 'Actual Total Time', 'Plan Rows', 'Plan Width', 'Total Cost',
@@ -43,8 +34,8 @@ class PostgresParser(DBParser):
         'Hash Join': 'Joins to record sets by hashing one of them (using a Hash Scan).',
         'Aggregate': 'Groups records together based on a GROUP BY or aggregate function (e.g. sum()).',
         'Seq Scan': 'Finds relevant records by sequentially scanning the input record set. When reading from a table, Seq Scans (unlike Index Scans) perform a single read operation (only the table is read).',
-        'Values Scan': "Scan the literal VALUES clause.",
-        'Sample Scan': "Finds relevant records and returns a random sample of it.",
+        'Values Scan': 'Scan the literal VALUES clause.',
+        'Sample Scan': 'Finds relevant records and returns a random sample of it.',
         'Function Scan': 'Scans the result of a set-returning functions.',
         'Where': 'Filter relation to hold only relevant records.',
         'Having': 'Filter relation to hold only relevant records.',
@@ -69,6 +60,15 @@ class PostgresParser(DBParser):
         self.query_prefix = self.explain_analyze_prefix if execute_query else self.explain_prefix
 
         super().__init__(is_compact)
+
+    def node_type_extractor(self, node):
+        return node['Node Type']
+
+    def execution_plan_extractor(self, node):
+        return node['Plan']
+
+    def filter_indicator(self, node):
+        return 'Filter' in node
 
     def add_supported_metrics(self, parsed_node, execution_node):
         for metric in self.supported_metrics:
@@ -109,15 +109,12 @@ class PostgresParser(DBParser):
             'SetOp': self.parse_set_op
         }
 
-    def from_query(self, query, con_str):
-        with create_engine(con_str).connect() as con:
-            explain_analyze_query = f"{self.query_prefix} {query.replace('%', '%%')}"
-            execution_plan = (
-                con.execute(explain_analyze_query)
-                .fetchone()
-                .values()[0][0]
-            )
-            return self.execution_plan_extractor(execution_plan)
+    @DBParser.parse_default_decor
+    def parse_base(self, execution_node):
+        return {
+            'label': self.node_type_extractor(execution_node),
+            'label_metadata': ''
+        }
 
     @DBParser.parse_default_decor
     def parse_limit(self, execution_node):
@@ -156,8 +153,8 @@ class PostgresParser(DBParser):
         """
 
         return {
-            'label': "UNION ALL",
-            'label_metadata': f"Sort Key: {itemgetter('Sort Key')(execution_node)}" if "Sort Key" in execution_node else "",
+            'label': 'UNION ALL',
+            'label_metadata': f"Sort Key: {itemgetter('Sort Key')(execution_node)}" if 'Sort Key' in execution_node else '',
         }
 
     @DBParser.parse_default_decor
@@ -181,8 +178,8 @@ class PostgresParser(DBParser):
         """
         return {
             'label': 'SetOp',
-            'label_metadata': f'Strategy:{execution_node["Strategy"]}\n' +
-                              f'Command:{execution_node["Command"]}\n'
+            'label_metadata': f'Strategy:{execution_node["Strategy"]}\n'
+                              + f'Command:{execution_node["Command"]}\n'
         }
 
     @DBParser.parse_default_decor
@@ -221,9 +218,9 @@ class PostgresParser(DBParser):
             'label_metadata': f'Workers Planned:{execution_node["Workers Planned"]}\n'
         }
 
-        for optional_col in ["Workers Launched", "Single Copy"]:
+        for optional_col in ['Workers Launched', 'Single Copy']:
             if optional_col in execution_node:
-                res["label_metadata"] += f'{optional_col}:{execution_node[optional_col]}\n'
+                res['label_metadata'] += f'{optional_col}:{execution_node[optional_col]}\n'
 
         return res
 
@@ -236,12 +233,12 @@ class PostgresParser(DBParser):
         """
         res = {
             'label': 'HASH',
-            'label_metadata': ""
+            'label_metadata': ''
         }
 
-        for optional_col in ["Hash Batches", "Hash Buckets", "Original Hash Batches", "Original Hash Buckets", "Peak Memory Usage"]:
+        for optional_col in ['Hash Batches', 'Hash Buckets', 'Original Hash Batches', 'Original Hash Buckets', 'Peak Memory Usage']:
             if optional_col in execution_node:
-                res["label_metadata"] += f'{optional_col}:{execution_node[optional_col]}\n'
+                res['label_metadata'] += f'{optional_col}:{execution_node[optional_col]}\n'
 
         return res
 
@@ -262,7 +259,7 @@ class PostgresParser(DBParser):
         ]
         metadata = f"{execution_node['Join Type']} Join"
         if cond_key:
-            metadata += f" with {itemgetter(cond_key[0])(execution_node)}"
+            metadata += f' with {itemgetter(cond_key[0])(execution_node)}'
         return {
             'label': 'JOIN',
             'label_metadata': metadata,
@@ -346,9 +343,9 @@ class PostgresParser(DBParser):
         def parse_naive_aggregate(execution_node):
             res = {
                 'label': 'AGG',
-                'label_metadata': f"Output: {itemgetter('Output')(execution_node)}\n" +
-                                  f"Partial Mode: {execution_node['Partial Mode']}\n" +
-                                  f"Strategy: {execution_node['Strategy']}\n"
+                'label_metadata': f"Output: {itemgetter('Output')(execution_node)}\n"
+                                  + f"Partial Mode: {execution_node['Partial Mode']}\n"
+                                  + f"Strategy: {execution_node['Strategy']}\n"
             }
 
             if 'Group Key' in execution_node:
@@ -363,7 +360,6 @@ class PostgresParser(DBParser):
 
     # TODO
     def enrich_stats(self, df):
-
         df['estimated_cost'] = df['total_cost']
         df['redundent_operation'] = False
 
@@ -403,9 +399,6 @@ class PostgresParser(DBParser):
         df['label_metadata'] = df.operation_type.map(
             lambda s: f"\nDescription: {self.description_dict.get(s,'')}" if s else '') + df.label_metadata
         return df
-
-    def clean_cache(self):
-        logging.warning('Currently cache cleaning is not supported')
 
 
 if __name__ == '__main__':

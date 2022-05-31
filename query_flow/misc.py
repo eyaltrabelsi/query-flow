@@ -15,3 +15,8 @@ def calc_ratio(df, column_a, column_b):
             return max([this, other]) / min([this, other])
 
     return df.apply(lambda x: calc_row(x[column_a], x[column_b]), axis=1)
+
+def listify(val):
+    if type(val) in [str, int, float, dict]:
+        return [val]
+    return val

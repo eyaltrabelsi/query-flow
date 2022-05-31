@@ -1,8 +1,33 @@
-source,target,operation_type,actual_rows,label,label_metadata
-0,1,Seq Scan,3446261,People,
-1,3,Where,3,People*,"Filter condition: (people.name = ANY ('{""Owen Wilson"",""Adam Sandler"",""Jason Segel""}'::text[]))"
-2,3,Seq Scan,13651901,Crew,
-3,6,Hash Join,565,People* ⋈ Crew,"Hash Cond ('Inner', '(crew.person_id = people.person_id)')"
-4,5,Seq Scan,2379234,Titles,
-5,6,Where,489076,Titles*,Filter condition: (titles.genres ~~ '%Comedy%'::text)
-6,7,Hash Join,186,People* ⋈ Crew ⋈ Titles*,"Hash Cond ('Inner', '(titles.title_id = crew.title_id)')"
+source,target,operation_type,label,label_metadata,node_hash,fragment_id,actual_rows,shared_read_blocks,total_cost,shared_written_blocks,local_hit_blocks,plan_rows,shared_hit_blocks,local_read_blocks,local_written_blocks,actual_total_time,local_dirtied_blocks,plan_width,temp_read_blocks,actual_startup_time,shared_dirtied_blocks,temp_written_blocks,actual_loops,query_hash,estimated_cost,redundent_operation,actual_startup_duration,actual_duration,estimated_cost_pct,actual_duration_pct,actual_plan_rows_ratio
+0,1,Seq Scan,People,"
+Description: Finds relevant records by sequentially scanning the input record set. When reading from a table, Seq Scans (unlike Index Scans) perform a single read operation (only the table is read).",7b2ff103133a83b22b41108280f7924a25804f91dc20358b73441a98,,3446261,81930,141258.61,0,0,5,96,0,0,517.757,0,10,0,184.948,0,0,3,5efbffb1f4500ee3c0e4fc74265e8e228f96e562accbe32d668534c8,141258.61,False,184.948,517.757,100.0,100.0,689252.2
+1,2,Where,People*,"
+Description: Filter relation to hold only relevant records.Filter condition: (people.name = ANY ('{""Owen Wilson"",""Adam Sandler"",""Jason Segel""}'::text[]))",d8b31b60823399b14a499d111a44012b81e010f4b11a0ab3bfcf0936,,3,81930,141258.61,0,0,5,96,0,0,517.757,0,10,0,184.948,0,0,3,5efbffb1f4500ee3c0e4fc74265e8e228f96e562accbe32d668534c8,0.0,False,-141073.66199999998,0.0,0.0,0.0,1.6666666666666667
+2,4,Hash,HASH,"
+Description: Generates a hash table from the records in the input recordset. Hash is used by Hash Join.Hash Batches:1
+Hash Buckets:1024
+Original Hash Batches:1
+Original Hash Buckets:1024
+Peak Memory Usage:72
+",2c2b5ba0417f6588426b84ad8f263127d49ca5d27152e6d33cd180b8,,3,81930,141258.61,0,0,5,96,0,0,517.809,0,10,0,517.809,0,0,3,5efbffb1f4500ee3c0e4fc74265e8e228f96e562accbe32d668534c8,0.0,False,-140740.80099999998,0.05200000000002092,0.0,0.010042312899161838,1.6666666666666667
+3,4,Seq Scan,Crew,"
+Description: Finds relevant records by sequentially scanning the input record set. When reading from a table, Seq Scans (unlike Index Scans) perform a single read operation (only the table is read).",b5f8d79f2d02c6cb19e25b0db815b3b3e5b6a1b31344769b8bad51da,,13651901,395764,566508.77,0,0,17064877,96,0,0,1503.825,0,20,0,0.074,0,0,3,5efbffb1f4500ee3c0e4fc74265e8e228f96e562accbe32d668534c8,566508.77,False,0.074,1503.825,100.0,100.0,1.250000054937404
+4,5,Hash Join,HASH ⋈ Crew,"
+Description: Joins to record sets by hashing one of them (using a Hash Scan).Inner Join with (crew.person_id = people.person_id)",f422a21a5f5a56fdbba906a6a61acd621ed197eb8600f51d814f6632,,565,477694,771760.8,0,0,21,192,0,0,3629.367,0,10,0,587.014,0,0,3,5efbffb1f4500ee3c0e4fc74265e8e228f96e562accbe32d668534c8,205252.03000000003,False,-565921.756,2125.5420000000004,26.595290924338215,58.565088622892105,26.904761904761905
+5,8,Hash,HASH,"
+Description: Generates a hash table from the records in the input recordset. Hash is used by Hash Join.Hash Batches:1
+Hash Buckets:1024
+Original Hash Batches:1
+Original Hash Buckets:1024
+Peak Memory Usage:104
+",bb30dc9fdcede5e4a5f56bde28214ae8307e5542c01bf9993ec9a963,,565,477694,771760.8,0,0,21,192,0,0,3629.91,0,10,0,3629.91,0,0,3,5efbffb1f4500ee3c0e4fc74265e8e228f96e562accbe32d668534c8,0.0,False,-768130.89,0.5429999999996653,0.0,0.014959048571442965,26.904761904761905
+6,7,Seq Scan,Titles,"
+Description: Finds relevant records by sequentially scanning the input record set. When reading from a table, Seq Scans (unlike Index Scans) perform a single read operation (only the table is read).",d1a40b2d694e5cd4498df2df53650e4ffb9dfd6bbfa550482887c7cf,,2379234,123397,160668.53,0,0,616393,96,0,0,493.101,0,10,0,0.053,0,0,3,5efbffb1f4500ee3c0e4fc74265e8e228f96e562accbe32d668534c8,160668.53,False,0.053,493.101,100.0,100.0,3.8599302717584396
+7,8,Where,Titles*,"
+Description: Filter relation to hold only relevant records.Filter condition: (titles.genres ~~ '%Comedy%'::text)",8a19d9e25a08eb9387a16ac2acc2b2449c55997644e5aebb6d482eec,,489076,123397,160668.53,0,0,616393,96,0,0,493.101,0,10,0,0.053,0,0,3,5efbffb1f4500ee3c0e4fc74265e8e228f96e562accbe32d668534c8,0.0,False,-160668.47699999998,0.0,0.0,0.0,1.2603215042242923
+8,9,Hash Join,HASH ⋈ Titles*,"
+Description: Joins to record sets by hashing one of them (using a Hash Scan).Inner Join with (titles.title_id = crew.title_id)",18288270ce859a372f4a230e1097eeada8ebe2c5d1fb65bdfb4220e5,,186,601091,934741.09,0,0,5,459,0,0,4190.602,0,10,0,3638.871,0,0,3,5efbffb1f4500ee3c0e4fc74265e8e228f96e562accbe32d668534c8,162980.28999999992,False,-768121.929,560.692,17.435875211177454,13.379748303465707,37.2
+9,10,Gather,Gather,"
+Description: Collect relevant records from the workers.Workers Planned:2
+Workers Launched:2
+",c1525fbd8b18bd76651a1b5969ff2500e71295f1007b2f88f8e31b93,,558,601091,935742.19,0,0,11,459,0,0,4194.678,0,10,0,3640.656,0,0,1,5efbffb1f4500ee3c0e4fc74265e8e228f96e562accbe32d668534c8,1001.0999999999767,False,-931100.434,4.076000000000022,0.10698459583189006,0.09717074826720959,50.72727272727273
