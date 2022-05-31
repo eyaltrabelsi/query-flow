@@ -1,42 +1,22 @@
-import logging
 from operator import itemgetter
 
-import numpy as np
 
 try:
     from .db_parser import DBParser
+    from ..misc import calc_precentage, calc_ratio
 except ImportError:
     # Support running doctests not as a module
     from db_parser import DBParser  # type: ignore
+    from query_flow.misc import calc_precentage, calc_ratio   # type: ignore
 
 __all__ = ['PostgresParser']
-
-
-def calc_precentage(series, comsum_series):
-    return series / comsum_series * 100
-
-
-def calc_ratio(df, column_a, column_b):
-    def calc_row(this, other):
-        if this == other:
-            return 1
-        elif this == 0 or other == 0:
-            return np.inf
-        else:
-            return max([this, other]) / min([this, other])
-
-    return df.apply(lambda x: calc_row(x[column_a], x[column_b]), axis=1)
 
 
 class PostgresParser(DBParser):
     explain_prefix = 'EXPLAIN(COSTS, VERBOSE, FORMAT JSON)'
     explain_analyze_prefix = 'EXPLAIN(ANALYZE, COSTS, VERBOSE, BUFFERS, FORMAT JSON)'
     query_prefix = None
-
-    node_type_indicator = 'Node Type'
     next_operator_indicator = 'Plans'
-    first_operator_indicator = 'Plan'
-    filter_indicator = 'Filter'
 
     supported_metrics = frozenset([
         'Actual Rows', 'Actual Total Time', 'Plan Rows', 'Plan Width', 'Total Cost',
@@ -45,7 +25,7 @@ class PostgresParser(DBParser):
         'Local Hit Blocks', 'Local Dirtied Blocks', 'Local Read Blocks',
         'Local Written Blocks', 'Temp Written Blocks', 'Temp Read Blocks',
     ])
-    verbose_ops = {'Hash', 'Gather', 'Gather Merge', 'Sort', 'WindowAgg', }
+    verbose_ops = {}
 
     description_dict = {
         'Append': 'Used in a UNION to merge multiple record sets by appending them together.',
@@ -54,8 +34,8 @@ class PostgresParser(DBParser):
         'Hash Join': 'Joins to record sets by hashing one of them (using a Hash Scan).',
         'Aggregate': 'Groups records together based on a GROUP BY or aggregate function (e.g. sum()).',
         'Seq Scan': 'Finds relevant records by sequentially scanning the input record set. When reading from a table, Seq Scans (unlike Index Scans) perform a single read operation (only the table is read).',
-        'Values Scan': "Scan the literal VALUES clause.",
-        'Sample Scan': "Finds relevant records and returns a random sample of it.",
+        'Values Scan': 'Scan the literal VALUES clause.',
+        'Sample Scan': 'Finds relevant records and returns a random sample of it.',
         'Function Scan': 'Scans the result of a set-returning functions.',
         'Where': 'Filter relation to hold only relevant records.',
         'Having': 'Filter relation to hold only relevant records.',
@@ -76,10 +56,29 @@ class PostgresParser(DBParser):
         'Subquery Scan': 'A Subquery Scan is for scanning the output of a sub-query in the range table.'
     }
 
-    def __init__(self, is_verbose=False, is_compact=False, execute_query=True):
+    def __init__(self, is_compact=False, execute_query=True):
         self.query_prefix = self.explain_analyze_prefix if execute_query else self.explain_prefix
 
-        super().__init__(is_verbose, is_compact)
+        super().__init__(is_compact)
+
+    def node_type_extractor(self, node):
+        return node['Node Type']
+
+    def execution_plan_extractor(self, node):
+        return node['Plan']
+
+    def filter_indicator(self, node):
+        return 'Filter' in node
+
+    def add_supported_metrics(self, parsed_node, execution_node):
+        for metric in self.supported_metrics:
+            if metric in execution_node:
+                normalized_key = metric.replace(' ', '_').lower()
+                parsed_node[normalized_key] = execution_node[metric]
+        return parsed_node
+
+    def normalize_metric(self, metric):
+        return metric.replace(' ', '_').lower()
 
     @property
     def strategy_dict(self):
@@ -108,6 +107,13 @@ class PostgresParser(DBParser):
             'Result': self.parse_result,
             'WindowAgg': self.parse_window,
             'SetOp': self.parse_set_op
+        }
+
+    @DBParser.parse_default_decor
+    def parse_base(self, execution_node):
+        return {
+            'label': self.node_type_extractor(execution_node),
+            'label_metadata': ''
         }
 
     @DBParser.parse_default_decor
@@ -147,8 +153,8 @@ class PostgresParser(DBParser):
         """
 
         return {
-            'label': "UNION ALL",
-            'label_metadata': f"Sort Key: {itemgetter('Sort Key')(execution_node)}" if "Sort Key" in execution_node else "",
+            'label': 'UNION ALL',
+            'label_metadata': f"Sort Key: {itemgetter('Sort Key')(execution_node)}" if 'Sort Key' in execution_node else '',
         }
 
     @DBParser.parse_default_decor
@@ -172,8 +178,8 @@ class PostgresParser(DBParser):
         """
         return {
             'label': 'SetOp',
-            'label_metadata': f'Strategy:{execution_node["Strategy"]}\n' +
-                              f'Command:{execution_node["Command"]}\n'
+            'label_metadata': f'Strategy:{execution_node["Strategy"]}\n'
+                              + f'Command:{execution_node["Command"]}\n'
         }
 
     @DBParser.parse_default_decor
@@ -212,9 +218,9 @@ class PostgresParser(DBParser):
             'label_metadata': f'Workers Planned:{execution_node["Workers Planned"]}\n'
         }
 
-        for optional_col in ["Workers Launched", "Single Copy"]:
+        for optional_col in ['Workers Launched', 'Single Copy']:
             if optional_col in execution_node:
-                res["label_metadata"] += f'{optional_col}:{execution_node[optional_col]}\n'
+                res['label_metadata'] += f'{optional_col}:{execution_node[optional_col]}\n'
 
         return res
 
@@ -227,12 +233,12 @@ class PostgresParser(DBParser):
         """
         res = {
             'label': 'HASH',
-            'label_metadata': ""
+            'label_metadata': ''
         }
 
-        for optional_col in ["Hash Batches", "Hash Buckets", "Original Hash Batches", "Original Hash Buckets", "Peak Memory Usage"]:
+        for optional_col in ['Hash Batches', 'Hash Buckets', 'Original Hash Batches', 'Original Hash Buckets', 'Peak Memory Usage']:
             if optional_col in execution_node:
-                res["label_metadata"] += f'{optional_col}:{execution_node[optional_col]}\n'
+                res['label_metadata'] += f'{optional_col}:{execution_node[optional_col]}\n'
 
         return res
 
@@ -253,7 +259,7 @@ class PostgresParser(DBParser):
         ]
         metadata = f"{execution_node['Join Type']} Join"
         if cond_key:
-            metadata += f" with {itemgetter(cond_key[0])(execution_node)}"
+            metadata += f' with {itemgetter(cond_key[0])(execution_node)}'
         return {
             'label': 'JOIN',
             'label_metadata': metadata,
@@ -337,9 +343,9 @@ class PostgresParser(DBParser):
         def parse_naive_aggregate(execution_node):
             res = {
                 'label': 'AGG',
-                'label_metadata': f"Output: {itemgetter('Output')(execution_node)}\n" +
-                                  f"Partial Mode: {execution_node['Partial Mode']}\n" +
-                                  f"Strategy: {execution_node['Strategy']}\n"
+                'label_metadata': f"Output: {itemgetter('Output')(execution_node)}\n"
+                                  + f"Partial Mode: {execution_node['Partial Mode']}\n"
+                                  + f"Strategy: {execution_node['Strategy']}\n"
             }
 
             if 'Group Key' in execution_node:
@@ -352,8 +358,8 @@ class PostgresParser(DBParser):
         yield parse_having
         yield parse_naive_aggregate
 
+    # TODO
     def enrich_stats(self, df):
-
         df['estimated_cost'] = df['total_cost']
         df['redundent_operation'] = False
 
@@ -376,9 +382,6 @@ class PostgresParser(DBParser):
 
             if row.operation_type in ['Unique', 'Where', 'Having'] and 'actual_startup_time' in df.columns:
                 df.loc[i, 'redundent_operation'] = False
-                #     (
-                #     sum(relevant_ops.actual_rows) == row.actual_rows
-                # )
 
             if any(op in row.label.split(' ') for op in self.label_replacement.keys()):
                 df.loc[i, 'label'] = self.label_replacement[row.label].join(
@@ -396,9 +399,6 @@ class PostgresParser(DBParser):
         df['label_metadata'] = df.operation_type.map(
             lambda s: f"\nDescription: {self.description_dict.get(s,'')}" if s else '') + df.label_metadata
         return df
-
-    def clean_cache(self):
-        logging.warning('Currently cache cleaning is not supported')
 
 
 if __name__ == '__main__':

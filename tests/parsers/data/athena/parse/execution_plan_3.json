@@ -1,0 +1,162 @@
+Query Plan
+{
+  "fragments" : [ {
+    "id" : "1",
+    "stageStats" : {
+      "totalCpuTime" : "30.27ms",
+      "inputRows" : "6292 rows",
+      "inputDataSize" : "420.85kB",
+      "scannedDataSize" : "0B",
+      "stdDevInputRows" : "0.00",
+      "outputRows" : "6292 rows",
+      "outputDataSize" : "310.25kB"
+    },
+    "outputLayout" : "publisher$gid, exchange$gid, count",
+    "logicalPlan" : {
+      "1" : [ {
+        "name" : "Project",
+        "identifier" : "[]",
+        "outputs" : [ "publisher$gid", "exchange$gid", "count" ],
+        "details" : "",
+        "distributedNodeStats" : {
+          "nodeCpuTime" : "0.00ns",
+          "nodeCpuFraction" : "0.00%",
+          "nodeOutputRows" : "6292 rows",
+          "nodeOutputDataSize" : "310.25kB",
+          "operatorInputRowsStats" : [ {
+            "nodeInputRows" : "786.50",
+            "nodeInputRowsStdDev" : "4.15%"
+          } ]
+        },
+        "children" : [ {
+          "name" : "Aggregate(FINAL)[publisher$gid, exchange$gid, groupid][$hashvalue]",
+          "identifier" : "",
+          "outputs" : [ "publisher$gid", "exchange$gid", "groupid", "$hashvalue", "count" ],
+          "details" : "count := \"count\"(\"count_14\")\n",
+          "distributedNodeStats" : {
+            "nodeCpuTime" : "26.00ms",
+            "nodeCpuFraction" : "4.34%",
+            "nodeOutputRows" : "6292 rows",
+            "nodeOutputDataSize" : "420.85kB",
+            "operatorInputRowsStats" : [ {
+              "nodeInputRows" : "786.50",
+              "nodeInputRowsStdDev" : "4.15%"
+            } ]
+          },
+          "children" : [ {
+            "name" : "LocalExchange",
+            "identifier" : "[HASH][$hashvalue] (\"publisher$gid\", \"exchange$gid\", \"groupid\")",
+            "outputs" : [ "publisher$gid", "exchange$gid", "groupid", "count_14", "$hashvalue" ],
+            "details" : "",
+            "distributedNodeStats" : {
+              "nodeCpuTime" : "0.00ns",
+              "nodeCpuFraction" : "0.00%",
+              "nodeOutputRows" : "6292 rows",
+              "nodeOutputDataSize" : "420.85kB",
+              "operatorInputRowsStats" : [ {
+                "nodeInputRows" : "786.50",
+                "nodeInputRowsStdDev" : "173.21%"
+              } ]
+            },
+            "children" : [ {
+              "name" : "RemoteSource",
+              "identifier" : "[2]",
+              "outputs" : [ "publisher$gid", "exchange$gid", "groupid", "count_14", "$hashvalue_15" ],
+              "details" : "",
+              "distributedNodeStats" : {
+                "nodeCpuTime" : "0.00ns",
+                "nodeCpuFraction" : "0.00%",
+                "nodeOutputRows" : "6292 rows",
+                "nodeOutputDataSize" : "420.85kB",
+                "operatorInputRowsStats" : [ {
+                  "nodeInputRows" : "786.50",
+                  "nodeInputRowsStdDev" : "173.21%"
+                } ]
+              },
+              "children" : [ ]
+            } ]
+          } ]
+        } ]
+      } ]
+    }
+  }, {
+    "id" : "2",
+    "stageStats" : {
+      "totalCpuTime" : "573.56ms",
+      "inputRows" : "561915 rows",
+      "inputDataSize" : "16.23MB",
+      "scannedDataSize" : "1.18MB",
+      "stdDevInputRows" : "280957.50",
+      "outputRows" : "6292 rows",
+      "outputDataSize" : "420.85kB"
+    },
+    "outputLayout" : "publisher$gid, exchange$gid, groupid, count_14, $hashvalue_16",
+    "logicalPlan" : {
+      "1" : [ {
+        "name" : "Aggregate(PARTIAL)[publisher$gid, exchange$gid, groupid][$hashvalue_16]",
+        "identifier" : "",
+        "outputs" : [ "publisher$gid", "exchange$gid", "groupid", "$hashvalue_16", "count_14" ],
+        "details" : "count_14 := \"count\"(\"expr\")\n",
+        "distributedNodeStats" : {
+          "nodeCpuTime" : "101.00ms",
+          "nodeCpuFraction" : "16.86%",
+          "nodeOutputRows" : "6292 rows",
+          "nodeOutputDataSize" : "420.85kB",
+          "operatorInputRowsStats" : [ {
+            "nodeInputRows" : "116774.00",
+            "nodeInputRowsStdDev" : "100.00%"
+          } ]
+        },
+        "children" : [ {
+          "name" : "Project",
+          "identifier" : "[]",
+          "outputs" : [ "exchange$gid", "publisher$gid", "expr", "groupid", "$hashvalue_16" ],
+          "details" : "$hashvalue_16 := \"combine_hash\"(\"combine_hash\"(\"combine_hash\"(bigint '0', COALESCE(\"$operator$hash_code\"(\"publisher$gid\"), 0)), COALESCE(\"$operator$hash_code\"(\"exchange$gid\"), 0)), COALESCE(\"$operator$hash_code\"(\"groupid\"), 0))\n",
+          "distributedNodeStats" : {
+            "nodeCpuTime" : "47.00ms",
+            "nodeCpuFraction" : "7.85%",
+            "nodeOutputRows" : "233548 rows",
+            "nodeOutputDataSize" : "11.23MB",
+            "operatorInputRowsStats" : [ {
+              "nodeInputRows" : "116774.00",
+              "nodeInputRowsStdDev" : "100.00%"
+            } ]
+          },
+          "children" : [ {
+            "name" : "GroupId",
+            "identifier" : "[[publisher], [publisher, exchange]]",
+            "outputs" : [ "exchange$gid", "publisher$gid", "expr", "groupid" ],
+            "details" : "exchange$gid := exchange\npublisher$gid := publisher\n",
+            "distributedNodeStats" : {
+              "nodeCpuTime" : "3.00ms",
+              "nodeCpuFraction" : "0.50%",
+              "nodeOutputRows" : "233548 rows",
+              "nodeOutputDataSize" : "9.19MB",
+              "operatorInputRowsStats" : [ {
+                "nodeInputRows" : "58387.00",
+                "nodeInputRowsStdDev" : "100.00%"
+              } ]
+            },
+            "children" : [ {
+              "name" : "ScanFilterProject",
+              "identifier" : "[table = awsdatacatalog:HiveTableHandle{schemaName=live_funnel, tableName=parquet_internal_crm_for_bi, analyzePartitionValues=Optional.empty}, grouped = false, filterPredicate = (\"lower\"(\"publisher\") LIKE '%p%')]",
+              "outputs" : [ "publisher", "exchange", "expr" ],
+              "details" : "expr := 1\nLAYOUT: live_funnel.parquet_internal_crm_for_bi\npublisher := publisher:string:13:REGULAR\nexchange := exchange:string:4:REGULAR\nupsolver_schema_version:int:-1:PARTITION_KEY\n    :: [[1]]\npartition_date:date:-1:PARTITION_KEY\n    :: [[2022-04-01]]\nInput: 561915 rows (16.23MB), Filtered: 79.22%\n",
+              "distributedNodeStats" : {
+                "nodeCpuTime" : "422.00ms",
+                "nodeCpuFraction" : "70.45%",
+                "nodeOutputRows" : "116774 rows",
+                "nodeOutputDataSize" : "5.16MB",
+                "operatorInputRowsStats" : [ {
+                  "nodeInputRows" : "280957.50",
+                  "nodeInputRowsStdDev" : "100.00%"
+                } ]
+              },
+              "children" : [ ]
+            } ]
+          } ]
+        } ]
+      } ]
+    }
+  } ]
+}

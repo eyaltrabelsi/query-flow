@@ -1,0 +1,209 @@
+Query Plan
+{
+  "fragments" : [ {
+    "id" : "1",
+    "stageStats" : {
+      "totalCpuTime" : "1.54ms",
+      "inputRows" : "80 rows",
+      "inputDataSize" : "2.66kB",
+      "scannedDataSize" : "0B",
+      "stdDevInputRows" : "0.00",
+      "outputRows" : "10 rows",
+      "outputDataSize" : "346B"
+    },
+    "outputLayout" : "publisher, exchange, count",
+    "logicalPlan" : {
+      "1" : [ {
+        "name" : "TopN",
+        "identifier" : "[10 by (publisher ASC_NULLS_LAST)]",
+        "outputs" : [ "publisher", "exchange", "count" ],
+        "details" : "",
+        "distributedNodeStats" : {
+          "nodeCpuTime" : "1.00ms",
+          "nodeCpuFraction" : "0.29%",
+          "nodeOutputRows" : "10 rows",
+          "nodeOutputDataSize" : "346B",
+          "operatorInputRowsStats" : [ {
+            "nodeInputRows" : "80.00",
+            "nodeInputRowsStdDev" : "0.00%"
+          } ]
+        },
+        "children" : [ {
+          "name" : "LocalExchange",
+          "identifier" : "[SINGLE] ()",
+          "outputs" : [ "publisher", "exchange", "count" ],
+          "details" : "",
+          "distributedNodeStats" : {
+            "nodeCpuTime" : "0.00ns",
+            "nodeCpuFraction" : "0.00%",
+            "nodeOutputRows" : "80 rows",
+            "nodeOutputDataSize" : "2.66kB",
+            "operatorInputRowsStats" : [ {
+              "nodeInputRows" : "20.00",
+              "nodeInputRowsStdDev" : "79.06%"
+            } ]
+          },
+          "children" : [ {
+            "name" : "RemoteSource",
+            "identifier" : "[2]",
+            "outputs" : [ "publisher", "exchange", "count" ],
+            "details" : "",
+            "distributedNodeStats" : {
+              "nodeCpuTime" : "0.00ns",
+              "nodeCpuFraction" : "0.00%",
+              "nodeOutputRows" : "80 rows",
+              "nodeOutputDataSize" : "2.66kB",
+              "operatorInputRowsStats" : [ {
+                "nodeInputRows" : "20.00",
+                "nodeInputRowsStdDev" : "79.06%"
+              } ]
+            },
+            "children" : [ ]
+          } ]
+        } ]
+      } ]
+    }
+  }, {
+    "id" : "2",
+    "stageStats" : {
+      "totalCpuTime" : "50.62ms",
+      "inputRows" : "11993 rows",
+      "inputDataSize" : "627.25kB",
+      "scannedDataSize" : "0B",
+      "stdDevInputRows" : "42.50",
+      "outputRows" : "80 rows",
+      "outputDataSize" : "2.66kB"
+    },
+    "outputLayout" : "publisher, exchange, count",
+    "logicalPlan" : {
+      "1" : [ {
+        "name" : "TopNPartial",
+        "identifier" : "[10 by (publisher ASC_NULLS_LAST)]",
+        "outputs" : [ "publisher", "exchange", "count" ],
+        "details" : "",
+        "distributedNodeStats" : {
+          "nodeCpuTime" : "13.00ms",
+          "nodeCpuFraction" : "3.77%",
+          "nodeOutputRows" : "80 rows",
+          "nodeOutputDataSize" : "2.66kB",
+          "operatorInputRowsStats" : [ {
+            "nodeInputRows" : "1499.13",
+            "nodeInputRowsStdDev" : "3.61%"
+          } ]
+        },
+        "children" : [ {
+          "name" : "Project",
+          "identifier" : "[]",
+          "outputs" : [ "publisher", "exchange", "count" ],
+          "details" : "",
+          "distributedNodeStats" : {
+            "nodeCpuTime" : "0.00ns",
+            "nodeCpuFraction" : "0.00%",
+            "nodeOutputRows" : "11993 rows",
+            "nodeOutputDataSize" : "521.84kB",
+            "operatorInputRowsStats" : [ {
+              "nodeInputRows" : "1499.13",
+              "nodeInputRowsStdDev" : "3.61%"
+            } ]
+          },
+          "children" : [ {
+            "name" : "Aggregate(FINAL)[publisher, exchange][$hashvalue]",
+            "identifier" : "",
+            "outputs" : [ "publisher", "exchange", "$hashvalue", "count" ],
+            "details" : "count := \"count\"(\"count_14\")\n",
+            "distributedNodeStats" : {
+              "nodeCpuTime" : "34.00ms",
+              "nodeCpuFraction" : "9.86%",
+              "nodeOutputRows" : "11993 rows",
+              "nodeOutputDataSize" : "627.25kB",
+              "operatorInputRowsStats" : [ {
+                "nodeInputRows" : "1499.13",
+                "nodeInputRowsStdDev" : "3.61%"
+              } ]
+            },
+            "children" : [ {
+              "name" : "LocalExchange",
+              "identifier" : "[HASH][$hashvalue] (\"publisher\", \"exchange\")",
+              "outputs" : [ "publisher", "exchange", "count_14", "$hashvalue" ],
+              "details" : "",
+              "distributedNodeStats" : {
+                "nodeCpuTime" : "2.00ms",
+                "nodeCpuFraction" : "0.58%",
+                "nodeOutputRows" : "11993 rows",
+                "nodeOutputDataSize" : "627.25kB",
+                "operatorInputRowsStats" : [ {
+                  "nodeInputRows" : "1499.13",
+                  "nodeInputRowsStdDev" : "173.21%"
+                } ]
+              },
+              "children" : [ {
+                "name" : "RemoteSource",
+                "identifier" : "[3]",
+                "outputs" : [ "publisher", "exchange", "count_14", "$hashvalue_15" ],
+                "details" : "",
+                "distributedNodeStats" : {
+                  "nodeCpuTime" : "0.00ns",
+                  "nodeCpuFraction" : "0.00%",
+                  "nodeOutputRows" : "11993 rows",
+                  "nodeOutputDataSize" : "627.25kB",
+                  "operatorInputRowsStats" : [ {
+                    "nodeInputRows" : "1499.13",
+                    "nodeInputRowsStdDev" : "173.21%"
+                  } ]
+                },
+                "children" : [ ]
+              } ]
+            } ]
+          } ]
+        } ]
+      } ]
+    }
+  }, {
+    "id" : "3",
+    "stageStats" : {
+      "totalCpuTime" : "294.90ms",
+      "inputRows" : "561915 rows",
+      "inputDataSize" : "16.23MB",
+      "scannedDataSize" : "1.18MB",
+      "stdDevInputRows" : "280957.50",
+      "outputRows" : "11993 rows",
+      "outputDataSize" : "627.25kB"
+    },
+    "outputLayout" : "publisher, exchange, count_14, $hashvalue_16",
+    "logicalPlan" : {
+      "1" : [ {
+        "name" : "Aggregate(PARTIAL)[publisher, exchange][$hashvalue_16]",
+        "identifier" : "",
+        "outputs" : [ "publisher", "exchange", "$hashvalue_16", "count_14" ],
+        "details" : "count_14 := \"count\"(*)\n",
+        "distributedNodeStats" : {
+          "nodeCpuTime" : "79.00ms",
+          "nodeCpuFraction" : "22.90%",
+          "nodeOutputRows" : "11993 rows",
+          "nodeOutputDataSize" : "627.25kB",
+          "operatorInputRowsStats" : [ {
+            "nodeInputRows" : "280957.50",
+            "nodeInputRowsStdDev" : "100.00%"
+          } ]
+        },
+        "children" : [ {
+          "name" : "ScanProject",
+          "identifier" : "[table = awsdatacatalog:HiveTableHandle{schemaName=live_funnel, tableName=parquet_internal_crm_for_bi, analyzePartitionValues=Optional.empty}, grouped = false]",
+          "outputs" : [ "exchange", "publisher", "$hashvalue_16" ],
+          "details" : "$hashvalue_16 := \"combine_hash\"(\"combine_hash\"(bigint '0', COALESCE(\"$operator$hash_code\"(\"publisher\"), 0)), COALESCE(\"$operator$hash_code\"(\"exchange\"), 0))\nLAYOUT: live_funnel.parquet_internal_crm_for_bi\npublisher := publisher:string:13:REGULAR\nexchange := exchange:string:4:REGULAR\nupsolver_schema_version:int:-1:PARTITION_KEY\n    :: [[1]]\npartition_date:date:-1:PARTITION_KEY\n    :: [[2022-04-01]]\nInput: 561915 rows (16.23MB), Filtered: 0.00%\n",
+          "distributedNodeStats" : {
+            "nodeCpuTime" : "216.00ms",
+            "nodeCpuFraction" : "62.61%",
+            "nodeOutputRows" : "561915 rows",
+            "nodeOutputDataSize" : "21.05MB",
+            "operatorInputRowsStats" : [ {
+              "nodeInputRows" : "280957.50",
+              "nodeInputRowsStdDev" : "100.00%"
+            } ]
+          },
+          "children" : [ ]
+        } ]
+      } ]
+    }
+  } ]
+}

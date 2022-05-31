@@ -1,0 +1,15 @@
+source,target,operation_type,label,label_metadata,node_hash,fragment_id,actual_rows,shared_read_blocks,total_cost,shared_written_blocks,local_hit_blocks,plan_rows,shared_hit_blocks,local_read_blocks,local_written_blocks,actual_total_time,local_dirtied_blocks,plan_width,temp_read_blocks,actual_startup_time,shared_dirtied_blocks,temp_written_blocks,actual_loops,query_hash,estimated_cost,redundent_operation,actual_startup_duration,actual_duration,estimated_cost_pct,actual_duration_pct,actual_plan_rows_ratio
+0,1,Seq Scan,Titles,"
+Description: Finds relevant records by sequentially scanning the input record set. When reading from a table, Seq Scans (unlike Index Scans) perform a single read operation (only the table is read).",d1a40b2d694e5cd4498df2df53650e4ffb9dfd6bbfa550482887c7cf,,2379234,118921,160656.55,0,0,12982,4572,0,0,399.961,0,10,0,0.125,0,0,3,feee68444c997718608af1d135e2b858e086376afbe499fda7e6a1eb,160656.55,False,0.125,399.961,100.0,100.0,183.2717608997073
+1,2,Where,Titles*,"
+Description: Filter relation to hold only relevant records.Filter condition: (titles_1.genres = 'Action'::text)",700a764e216c7c7bb7859778814ffb22ebe7fa0646d78ce108b785ff,,10359,118921,160656.55,0,0,12982,4572,0,0,399.961,0,10,0,0.125,0,0,3,feee68444c997718608af1d135e2b858e086376afbe499fda7e6a1eb,0.0,False,-160656.425,0.0,0.0,0.0,1.2532097692827493
+2,5,Gather,Gather,"
+Description: Collect relevant records from the workers.Workers Planned:2
+Workers Launched:2
+",c1525fbd8b18bd76651a1b5969ff2500e71295f1007b2f88f8e31b93,,31076,118921,164772.35,0,0,31158,4572,0,0,405.079,0,10,0,0.356,0,0,1,feee68444c997718608af1d135e2b858e086376afbe499fda7e6a1eb,4115.8000000000175,False,-160656.194,5.117999999999995,2.497870546848435,1.2634572515484621,1.0026386922383834
+3,4,Seq Scan,Titles,"
+Description: Finds relevant records by sequentially scanning the input record set. When reading from a table, Seq Scans (unlike Index Scans) perform a single read operation (only the table is read).",d1a40b2d694e5cd4498df2df53650e4ffb9dfd6bbfa550482887c7cf,,7137701,118953,212685.51,0,0,504235,4540,0,0,1137.667,0,10,0,0.054,0,0,1,feee68444c997718608af1d135e2b858e086376afbe499fda7e6a1eb,212685.51,False,0.054,1137.667,100.0,100.0,14.155504873719595
+4,5,Where,Titles*,"
+Description: Filter relation to hold only relevant records.Filter condition: (titles.genres = 'Comedy'::text)",af1d4c524fbe6750788a0c6387105d4874a4eaf79c4b2860c1095410,,513882,118953,212685.51,0,0,504235,4540,0,0,1137.667,0,10,0,0.054,0,0,1,feee68444c997718608af1d135e2b858e086376afbe499fda7e6a1eb,0.0,False,-212685.456,0.0,0.0,0.0,1.0191319523634814
+5,6,Append,Gather U Titles*,"
+Description: Used in a UNION to merge multiple record sets by appending them together.",6cce3cec56b9dc7b56a0e77516e75ff013bbab2a36be62b96c9b60a9,,544958,237874,385488.75,0,0,535393,9112,0,0,1600.996,0,10,0,0.054,0,0,1,feee68444c997718608af1d135e2b858e086376afbe499fda7e6a1eb,172803.24,False,-212685.456,463.3290000000002,44.82705137309455,28.940047320542973,1.0178653811312437

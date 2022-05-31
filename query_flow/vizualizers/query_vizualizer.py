@@ -1,28 +1,31 @@
+import collections
+
+import numpy as np
+import pandas as pd
+from plotly.offline import iplot
+from plotly.offline import plot
+
 try:
     from .coloring_utils import sample_colors, color_range
-    from .dataframe_sankey_vizualizer import DataFrameSankeyVizualizer
 except ImportError:
+
     # Support running doctests not as a module
-    from dataframe_sankey_vizualizer import DataFrameSankeyVizualizer  # type: ignore
     from coloring_utils import sample_colors, color_range  # type: ignore
 
 __all__ = ['QueryVizualizer']
 
 
-def listify(val):
-    if type(val) in [str, int, float, dict]:
-        return [val]
-    return val
-
-
-class QueryVizualizer(DataFrameSankeyVizualizer):
+class QueryVizualizer():
     columns_pks = frozenset([
         'source', 'target', 'label', 'query_hash', 'node_hash',
         'label_metadata', 'operation_type', 'redundent_operation',
     ])
-
+    # TODO remove from here and change abstraction
     supported_metrics = {
         'actual_rows': ' Rows',
+        'nodeOutputRows': ' Rows',
+        'nodeOutputDataSize': ' GB',
+        'nodeCpuTime': ' Seconds',
         'actual_startup_duration': ' Seconds',
         'actual_duration': ' Seconds',
         'actual_duration_pct': ' Percent',
@@ -44,7 +47,7 @@ class QueryVizualizer(DataFrameSankeyVizualizer):
         'Limit': 'khaki',
         'Nested Loop': 'mediumseagreen',
         'Where': 'deepskyblue',
-    }
+    }  # TODO remove it
     special_cases_link_colors = {'empty': 'red', 'redundant': 'coral'}
 
     def __init__(self, parser, is_colored_nodes=False, node_colors=None):
@@ -88,6 +91,79 @@ class QueryVizualizer(DataFrameSankeyVizualizer):
         else:
             df['color_node'] = 'black'
         return df
+
+    def vizualize(self, dfs, metrics, title, open_=True):
+        metrics = metrics or self.default_metrics.keys()
+        # TODO change metric from UI
+        assert all(
+            metric in self.supported_metrics.keys() for metric in
+            metrics
+        ), f'The only supported metrics are {self.supported_metrics}'
+
+        flow_df = self._prepare_dfs_for_sankey(dfs, metrics)
+        self._plot_sankey(flow_df, metrics, title, open_)
+
+    def _plot_sankey(self, flow_df, metrics, title, open_):
+        data_trace = dict(
+            type='sankey',
+            orientation='h',
+            valueformat=',',
+            valuesuffix=flow_df['variable'].map(self.supported_metrics),
+            node=dict(
+                pad=200,
+                label=flow_df.drop_duplicates(['node_hash'])['label'] if self.parser.is_compact else flow_df['label'],
+                color=flow_df['color_node'],
+            ),
+            link=dict(
+
+                source=flow_df['source'],
+                target=flow_df['target'],
+                value=flow_df['value'].map(np.int64).replace(0, 1),
+                label=flow_df['label_metadata'],
+                color=flow_df['color_link'],
+            ),
+        )
+        layout = dict(
+            title=f"{title}-{','.join(metrics)}",
+            font=dict(size=10),
+            height=2000,  # TODO fix this too look good on all type of sizes
+            updatemenus=[
+                dict(
+                    y=0.6,
+                    buttons=[
+                        dict(
+                            label='Vertical', method='restyle',
+                            args=['orientation', 'v'],
+                        ),
+                        dict(
+                            label='Horizontal', method='restyle',
+                            args=['orientation', 'h'],
+                        ),
+
+                    ],
+                ),
+            ],
+        )
+        if open_:  # TODO change this to two functions
+            plot(
+                dict(data=[data_trace], layout=layout),
+                validate=False,
+                filename=f"{title}-{','.join(metrics)}.html",
+                image_width=8000,
+                auto_open=False,
+            )
+        else:
+            iplot(
+                dict(data=[data_trace], layout=layout),
+                validate=False,
+                filename=f"{title}-{','.join(metrics)}.html",
+            )  # todo refactor
+
+    def _prepare_dfs_for_sankey(self, flow_dfs, metrics):
+        if isinstance(flow_dfs, collections.Sequence):
+            flow_dfs = pd.concat(flow_dfs)
+        flow_dfs = flow_dfs.melt(id_vars=self.columns_pks, value_vars=metrics)
+        return self._enrich_colors(flow_dfs, metrics)
 
     @staticmethod
     def _get_case(metric, value, redundent_operation):

@@ -1,0 +1,70 @@
+source,target,operation_type,label,label_metadata,node_hash,fragment_id,nodecputime,nodeoutputdatasize,nodecpufraction,nodeoutputrows,query_hash,redundent_operation
+0,1,RemoteSource,remote_source [2],,33636cc7814caf374d120dd6a5c5499d7324edf96c5b9cff91dbab63,,2.00ms,227.99kB,0.00%,5583.0,9a0872931967abf1b5c31870cc8aeaf46ce8750e2e1671ebd2120f99,False
+1,2,PartialSort,sort,"identifier: [expr_2 ASC_NULLS_LAST, date ASC_NULLS_LAST, expr_3 ASC_NULLS_LAST]
+ details: ",82a395fa93baf0f4b1123f04f5478fc3b3a43727b018858e6ce961b7,,85.00ms,227.99kB,0.00%,5583.0,9a0872931967abf1b5c31870cc8aeaf46ce8750e2e1671ebd2120f99,False
+2,18,LocalMerge,merge,"identifier: [expr_2 ASC_NULLS_LAST, date ASC_NULLS_LAST, expr_3 ASC_NULLS_LAST]
+ details: ",f82c74196ae38a51ffbfdeb34fdd222cb16854655e676d7476fa2494,1,15.00ms,227.99kB,0.00%,5583.0,9a0872931967abf1b5c31870cc8aeaf46ce8750e2e1671ebd2120f99,False
+3,4,RemoteSource,remote_source [3],,56e757bfe6e63c162fbdcb768660184839c6d8b960b5163ed786652f,,56.00ms,13.22MB,0.00%,272472.0,9a0872931967abf1b5c31870cc8aeaf46ce8750e2e1671ebd2120f99,False
+4,5,LocalExchange,local_exchange,"identifier: [HASH][$hashvalue] (""expr_2"", ""date"", ""expr_3"")
+ details: ",ddf58ec7847a2d859e08cb30d23cd90a2381f9bffa869e30fd5b8d63,,132.00ms,13.22MB,0.00%,272472.0,9a0872931967abf1b5c31870cc8aeaf46ce8750e2e1671ebd2120f99,False
+5,6,"Aggregate(FINAL)[expr_2, date, expr_3][$hashvalue]",aggregate,"name: Aggregate(FINAL)[expr_2, date, expr_3][$hashvalue]
+ details: count := ""count""(""count_24"")
+",3750a47927ec5f5db489ab91a178f9e4094074783eabc13b251c3dfe,,244.00ms,277.05kB,0.01%,5583.0,9a0872931967abf1b5c31870cc8aeaf46ce8750e2e1671ebd2120f99,False
+6,0,Project,Project,"identifier: []
+ details: ",161543df05b7f0d398a2d20dd155eb71d6b3e5c4bbd3008412cfaae9,2,39.00ms,227.99kB,0.00%,5583.0,9a0872931967abf1b5c31870cc8aeaf46ce8750e2e1671ebd2120f99,False
+7,8,RemoteSource,remote_source [5],,6d3c01f2072845cd7c725c94d987f4efa0ad4fcece1ea334af8fcc4b,,37.00ms,1.70MB,0.00%,27283.0,9a0872931967abf1b5c31870cc8aeaf46ce8750e2e1671ebd2120f99,False
+8,10,LocalExchange,local_exchange,"identifier: [HASH][$hashvalue_28] (""app_id"")
+ details: ",ec27c8d49871deb51cc7e9921e4afaa894788c1f6c26df25b098dc93,,101.00ms,1.70MB,0.00%,27283.0,9a0872931967abf1b5c31870cc8aeaf46ce8750e2e1671ebd2120f99,False
+9,10,RemoteSource,remote_source [4],,f1b6cd83691cb008343330c0ad514d9089e665d67f6665422fae3444,,13.68s,57.56GB,0.39%,1103117404.0,9a0872931967abf1b5c31870cc8aeaf46ce8750e2e1671ebd2120f99,False
+10,11,InnerJoin,InnerJoin,"identifier: [(""publisher"" = ""app_id"")][$hashvalue_26, $hashvalue_28]
+ details: Distribution: PARTITIONED
+dynamicFilterAssignments = {app_id -> 460}",1f0dd30b8dde7cf4c073bc13e0e12a75a902cd4cec88049fa879bb24,,3.30m,27.67GB,5.60%,494943805.0,9a0872931967abf1b5c31870cc8aeaf46ce8750e2e1671ebd2120f99,False
+11,12,Project,Project,"identifier: []
+ details: expr_2 := (CASE WHEN ((""bac"" IS NULL) OR (""bac"" = CAST('' AS varchar))) THEN CAST('No vertical' AS varchar) ELSE ""bac"" END)
+date := ""date""(""concat""(""concat""(""concat""(""concat""(""year"", CAST('-' AS varchar)), ""month""), CAST('-' AS varchar)), ""day""))
+expr_3 := (CASE ""bac"" WHEN CAST('Game>Casino>Slots' AS varchar) THEN true WHEN CAST('Game>Casino>Bingo' AS varchar) THEN true WHEN CAST('Game>Real Money>Bingo' AS varchar) THEN true WHEN CAST('Game>Casino>Poker' AS varchar) THEN true WHEN CAST('Game>Cards>Solitaire' AS varchar) THEN true WHEN CAST('Game>Casino>Scratch Cards' AS varchar) THEN true WHEN CAST('Game>Adventure>Coin Master' AS varchar) THEN true WHEN CAST('Game>Board>DiceGame' AS varchar) THEN true WHEN CAST('Entertainment>Rewards>Other' AS varchar) THEN true ELSE false END)
+",9fca9e3201906b57366d050b47268dbd96a5248d9426478cc26d2b37,,12.40m,14.77GB,21.07%,494943805.0,9a0872931967abf1b5c31870cc8aeaf46ce8750e2e1671ebd2120f99,False
+12,13,Project,Project,"identifier: []
+ details: $hashvalue_31 := ""combine_hash""(""combine_hash""(""combine_hash""(bigint '0', COALESCE(""$operator$hash_code""(""expr_2""), 0)), COALESCE(""$operator$hash_code""(""date""), 0)), COALESCE(""$operator$hash_code""(""expr_3""), 0))
+",5b638472db9dd2286f7d59eee9289c7d908c5b46199b7ce46761ac20,,29.97s,18.91GB,0.85%,494943805.0,9a0872931967abf1b5c31870cc8aeaf46ce8750e2e1671ebd2120f99,False
+13,3,"Aggregate(PARTIAL)[expr_2, date, expr_3][$hashvalue_31]",aggregate,"name: Aggregate(PARTIAL)[expr_2, date, expr_3][$hashvalue_31]
+ details: count_24 := ""count""(*)
+",d10845e9335973db1c89d778d521465214313a400302c4ad90f57cff,3,54.22s,13.22MB,1.54%,272472.0,9a0872931967abf1b5c31870cc8aeaf46ce8750e2e1671ebd2120f99,False
+14,15,ScanFilterProject,ScanFilterProject-inventory_discovery_us_east,"identifier: [table = awsdatacatalog:HiveTableHandle{schemaName=dmp_data, tableName=inventory_discovery_us_east, analyzePartitionValues=Optional.empty}, grouped = false, filterPredicate = (CAST(""date""(""concat""(""concat""(""concat""(""concat""(""year"", CAST('-' AS varchar)), ""month""), CAST('-' AS varchar)), ""day"")) AS timestamp with time zone) > ""$literal$timestamp with time zone""(6756123193606144)), dynamicFilter = {460 -> ""publisher""}]
+ details: $hashvalue_27 := ""combine_hash""(bigint '0', COALESCE(""$operator$hash_code""(""publisher""), 0))
+LAYOUT: dmp_data.inventory_discovery_us_east
+month := month:string:-1:PARTITION_KEY
+    :: [[04], [05]]
+year := year:string:-1:PARTITION_KEY
+    :: [[2022]]
+publisher := publisher:string:44:REGULAR
+day := day:string:-1:PARTITION_KEY
+    :: [[01], [02], [03], [04], [05], [06], [07], [09], [10], [11], [12], [13], [14], [15], [16], [17], [18], [19], [20], [21], [22], [23], [24], [25], [26], [27], [28], [29], [30]]
+Input: 1103117404 rows (24.70GB), Filtered: 0.00%
+",ad8ee52d9868481359a0f466c490508606a3cd32f8533803a1267d2b,4,41.06m,33.95GB,69.75%,1103117404.0,9a0872931967abf1b5c31870cc8aeaf46ce8750e2e1671ebd2120f99,False
+15,9,Where,ScanFilterProject-inventory_discovery_us_east*,"identifier: [table = awsdatacatalog:HiveTableHandle{schemaName=dmp_data, tableName=inventory_discovery_us_east, analyzePartitionValues=Optional.empty}, grouped = false, filterPredicate = (CAST(""date""(""concat""(""concat""(""concat""(""concat""(""year"", CAST('-' AS varchar)), ""month""), CAST('-' AS varchar)), ""day"")) AS timestamp with time zone) > ""$literal$timestamp with time zone""(6756123193606144)), dynamicFilter = {460 -> ""publisher""}]
+ details: $hashvalue_27 := ""combine_hash""(bigint '0', COALESCE(""$operator$hash_code""(""publisher""), 0))
+LAYOUT: dmp_data.inventory_discovery_us_east
+month := month:string:-1:PARTITION_KEY
+    :: [[04], [05]]
+year := year:string:-1:PARTITION_KEY
+    :: [[2022]]
+publisher := publisher:string:44:REGULAR
+day := day:string:-1:PARTITION_KEY
+    :: [[01], [02], [03], [04], [05], [06], [07], [09], [10], [11], [12], [13], [14], [15], [16], [17], [18], [19], [20], [21], [22], [23], [24], [25], [26], [27], [28], [29], [30]]
+Input: 1103117404 rows (24.70GB), Filtered: 0.00%
+",94a01977adb15e0f917e688ec179fcb12a093c999033b71500d2a7ef,4,41.06m,33.95GB,69.75%,1103117404.0,9a0872931967abf1b5c31870cc8aeaf46ce8750e2e1671ebd2120f99,False
+16,17,ScanFilterProject,ScanFilterProject-app_bac_repo,"identifier: [table = awsdatacatalog:HiveTableHandle{schemaName=temp_tables, tableName=app_bac_repo, analyzePartitionValues=Optional.empty}, grouped = false, filterPredicate = (""bac"" LIKE '%Game%')]
+ details: $hashvalue_30 := ""combine_hash""(bigint '0', COALESCE(""$operator$hash_code""(""app_id""), 0))
+LAYOUT: temp_tables.app_bac_repo
+bac := bac:string:7:REGULAR
+app_id := app_id:string:0:REGULAR
+Input: 9202005 rows (1.71GB), Filtered: 99.70%
+",3c81f5f34632cf47af0b0375199491fd7fdc714a35187d28005701c8,5,27.70s,1.70MB,0.78%,27283.0,9a0872931967abf1b5c31870cc8aeaf46ce8750e2e1671ebd2120f99,False
+17,7,Where,ScanFilterProject-app_bac_repo*,"identifier: [table = awsdatacatalog:HiveTableHandle{schemaName=temp_tables, tableName=app_bac_repo, analyzePartitionValues=Optional.empty}, grouped = false, filterPredicate = (""bac"" LIKE '%Game%')]
+ details: $hashvalue_30 := ""combine_hash""(bigint '0', COALESCE(""$operator$hash_code""(""app_id""), 0))
+LAYOUT: temp_tables.app_bac_repo
+bac := bac:string:7:REGULAR
+app_id := app_id:string:0:REGULAR
+Input: 9202005 rows (1.71GB), Filtered: 99.70%
+",5bde92ea5029366a61d6350dc1f38a3d40db55dd25195572e8776d18,5,27.70s,1.70MB,0.78%,27283.0,9a0872931967abf1b5c31870cc8aeaf46ce8750e2e1671ebd2120f99,False

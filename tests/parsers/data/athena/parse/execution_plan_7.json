@@ -1,0 +1,130 @@
+Query Plan
+{
+  "fragments" : [ {
+    "id" : "1",
+    "stageStats" : {
+      "totalCpuTime" : "5.03ms",
+      "inputRows" : "40 rows",
+      "inputDataSize" : "1.71kB",
+      "scannedDataSize" : "0B",
+      "stdDevInputRows" : "0.00",
+      "outputRows" : "10 rows",
+      "outputDataSize" : "372B"
+    },
+    "outputLayout" : "publisher, field",
+    "logicalPlan" : {
+      "1" : [ {
+        "name" : "Limit",
+        "identifier" : "[10]",
+        "outputs" : [ "publisher", "field" ],
+        "details" : "",
+        "distributedNodeStats" : {
+          "nodeCpuTime" : "1.00ms",
+          "nodeCpuFraction" : "0.71%",
+          "nodeOutputRows" : "10 rows",
+          "nodeOutputDataSize" : "372B",
+          "operatorInputRowsStats" : [ {
+            "nodeInputRows" : "10.00",
+            "nodeInputRowsStdDev" : "0.00%"
+          } ]
+        },
+        "children" : [ {
+          "name" : "LocalExchange",
+          "identifier" : "[SINGLE] ()",
+          "outputs" : [ "publisher", "field" ],
+          "details" : "",
+          "distributedNodeStats" : {
+            "nodeCpuTime" : "0.00ns",
+            "nodeCpuFraction" : "0.00%",
+            "nodeOutputRows" : "10 rows",
+            "nodeOutputDataSize" : "372B",
+            "operatorInputRowsStats" : [ {
+              "nodeInputRows" : "10.00",
+              "nodeInputRowsStdDev" : "70.71%"
+            } ]
+          },
+          "children" : [ {
+            "name" : "RemoteSource",
+            "identifier" : "[2]",
+            "outputs" : [ "publisher", "field" ],
+            "details" : "",
+            "distributedNodeStats" : {
+              "nodeCpuTime" : "0.00ns",
+              "nodeCpuFraction" : "0.00%",
+              "nodeOutputRows" : "40 rows",
+              "nodeOutputDataSize" : "1.71kB",
+              "operatorInputRowsStats" : [ {
+                "nodeInputRows" : "10.00",
+                "nodeInputRowsStdDev" : "70.71%"
+              } ]
+            },
+            "children" : [ ]
+          } ]
+        } ]
+      } ]
+    }
+  }, {
+    "id" : "2",
+    "stageStats" : {
+      "totalCpuTime" : "97.34ms",
+      "inputRows" : "44167 rows",
+      "inputDataSize" : "186.89kB",
+      "scannedDataSize" : "2.14MB",
+      "stdDevInputRows" : "3306.96",
+      "outputRows" : "70 rows",
+      "outputDataSize" : "2.91kB"
+    },
+    "outputLayout" : "publisher, field",
+    "logicalPlan" : {
+      "1" : [ {
+        "name" : "LimitPartial",
+        "identifier" : "[10]",
+        "outputs" : [ "publisher", "field" ],
+        "details" : "",
+        "distributedNodeStats" : {
+          "nodeCpuTime" : "1.00ms",
+          "nodeCpuFraction" : "0.71%",
+          "nodeOutputRows" : "70 rows",
+          "nodeOutputDataSize" : "2.91kB",
+          "operatorInputRowsStats" : [ {
+            "nodeInputRows" : "18.15",
+            "nodeInputRowsStdDev" : "828.30%"
+          } ]
+        },
+        "children" : [ {
+          "name" : "Unnest",
+          "identifier" : "[replicate=publisher:varchar, unnest=expr:array(varchar(6))]",
+          "outputs" : [ "publisher", "field" ],
+          "details" : "",
+          "distributedNodeStats" : {
+            "nodeCpuTime" : "23.00ms",
+            "nodeCpuFraction" : "16.43%",
+            "nodeOutputRows" : "8732 rows",
+            "nodeOutputDataSize" : "275.69kB",
+            "operatorInputRowsStats" : [ {
+              "nodeInputRows" : "17.31",
+              "nodeInputRowsStdDev" : "1629.86%"
+            } ]
+          },
+          "children" : [ {
+            "name" : "ScanProject",
+            "identifier" : "[table = awsdatacatalog:HiveTableHandle{schemaName=live_funnel, tableName=parquet_internal_crm_for_bi, analyzePartitionValues=Optional.empty}, grouped = false]",
+            "outputs" : [ "publisher", "expr" ],
+            "details" : "expr := \"$literal$array(varchar(6))\"(\"from_base64\"('DgAAAFZBUklBQkxFX1dJRFRIBAAAAAYAAAAKAAAADQAAABIAAAAAEgAAAFNoYXJvbkpvaG5Cb2JTYWxseQ=='))\nLAYOUT: live_funnel.parquet_internal_crm_for_bi\npublisher := publisher:string:13:REGULAR\nupsolver_schema_version:int:-1:PARTITION_KEY\n    :: [[1]]\npartition_date:date:-1:PARTITION_KEY\n    :: [[2021-04-01, 2022-05-28]]\nInput: 44167 rows (186.89kB), Filtered: 81.15%\n",
+            "distributedNodeStats" : {
+              "nodeCpuTime" : "115.00ms",
+              "nodeCpuFraction" : "82.14%",
+              "nodeOutputRows" : "8327 rows",
+              "nodeOutputDataSize" : "269.29kB",
+              "operatorInputRowsStats" : [ {
+                "nodeInputRows" : "91.82",
+                "nodeInputRowsStdDev" : "418.66%"
+              } ]
+            },
+            "children" : [ ]
+          } ]
+        } ]
+      } ]
+    }
+  } ]
+}

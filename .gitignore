@@ -14,3 +14,4 @@ dist/
 *.egg-info
 test-output.xml
 tpch-kit/*
+venv

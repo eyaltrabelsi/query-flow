@@ -1,6 +1,0 @@
-source,target,operation_type,actual_rows,label,label_metadata
-0,1,Seq Scan,29,Generes,
-1,4,Where,27,Generes*,Filter condition: generes.kid_safe
-2,3,Seq Scan,7137701,Titles,
-3,4,Where,911257,Titles*,"Filter condition: (titles.premiered >= (date_part('year'::text, (CURRENT_DATE)::timestamp without time zone) - '2'::double precision))"
-4,5,Nested Loop,1338247,Generes* ⋈ Titles*,"Join Filter ('Inner', '(""position""(titles.genres, generes.genere_name) > 0)')"

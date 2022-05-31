@@ -1,0 +1,67 @@
+Query Plan
+{
+  "fragments" : [ {
+    "id" : "1",
+    "stageStats" : {
+      "totalCpuTime" : "412.27us",
+      "inputRows" : "1 row",
+      "inputDataSize" : "0B",
+      "scannedDataSize" : "0B",
+      "stdDevInputRows" : "0.00",
+      "outputRows" : "1 row",
+      "outputDataSize" : "5B"
+    },
+    "outputLayout" : "expr",
+    "logicalPlan" : {
+      "1" : [ {
+        "name" : "Project",
+        "identifier" : "[]",
+        "outputs" : [ "expr" ],
+        "details" : "expr := 1\n",
+        "distributedNodeStats" : {
+          "nodeCpuTime" : "0.00ns",
+          "nodeCpuFraction" : "?%",
+          "nodeOutputRows" : "1 row",
+          "nodeOutputDataSize" : "5B",
+          "operatorInputRowsStats" : [ {
+            "nodeInputRows" : "0.25",
+            "nodeInputRowsStdDev" : "173.21%"
+          } ]
+        },
+        "children" : [ {
+          "name" : "LocalExchange",
+          "identifier" : "[ROUND_ROBIN] ()",
+          "outputs" : [ ],
+          "details" : "",
+          "distributedNodeStats" : {
+            "nodeCpuTime" : "0.00ns",
+            "nodeCpuFraction" : "?%",
+            "nodeOutputRows" : "1 row",
+            "nodeOutputDataSize" : "0B",
+            "operatorInputRowsStats" : [ {
+              "nodeInputRows" : "1.00",
+              "nodeInputRowsStdDev" : "0.00%"
+            } ]
+          },
+          "children" : [ {
+            "name" : "Values",
+            "identifier" : "",
+            "outputs" : [ ],
+            "details" : "()\n",
+            "distributedNodeStats" : {
+              "nodeCpuTime" : "0.00ns",
+              "nodeCpuFraction" : "?%",
+              "nodeOutputRows" : "1 row",
+              "nodeOutputDataSize" : "0B",
+              "operatorInputRowsStats" : [ {
+                "nodeInputRows" : "1.00",
+                "nodeInputRowsStdDev" : "0.00%"
+              } ]
+            },
+            "children" : [ ]
+          } ]
+        } ]
+      } ]
+    }
+  } ]
+}

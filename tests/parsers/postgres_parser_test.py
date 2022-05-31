@@ -18,10 +18,9 @@ def assert_dataframe_almost_acual(right, left):
     assert_frame_equal(right, left)
 
 
-@pytest.mark.parametrize('use_case', (pathlib.Path(__file__).parent / 'data' / 'parse').iterdir())
+@pytest.mark.parametrize('use_case', (pathlib.Path(__file__).parent / 'data' / 'postgres' / 'parse').iterdir())
 def test_parse(use_case):
-    is_verbose = use_case.name == 'ineffective_operation'
-    p = PostgresParser(is_verbose)
+    p = PostgresParser()
     query = [json.loads(open(f'{use_case}/execution_plan.json').read())]
     actual_flow_df = p.parse(query)
     expected_flow_df = pd.read_csv(f'{use_case}/cardinality.csv')
@@ -30,7 +29,7 @@ def test_parse(use_case):
     )
 
 
-@pytest.mark.parametrize('use_case', (pathlib.Path(__file__).parent / 'data' / 'multi_parse').iterdir())
+@pytest.mark.parametrize('use_case', (pathlib.Path(__file__).parent / 'data' / 'postgres' / 'multi_parse').iterdir())
 def test_parse_multi(use_case):
     p = PostgresParser()
     queries = [

@@ -1,43 +1,29 @@
-1) fix_wrong_unique - Unique work wrong with verbose=False 4. Identifying Ineffective operations.ipynb.
-   fix_index_naming of the scan
-
-2) Refactor to introduce new abstractions:
-- Flow/Execution Plan abstraction
+1) Support athena parser:
+    a. Remove the remote from parsing
+    b. check limit query
+    c. support redundent_operation
+2) Fix documentation to work:
+   - Jupyter examples
+     - make it work with a mock
+     - https://nbviewer.org/
+3) better repository
+   - Usage / Docs
+     - readthedocs
+     - how it should be used
+   - lean installation per database
+   - support terminal execution
+   - Support easier installations:
+     - pypi
+     - apt-get
+     - brew
+4) Refactor to introduce new abstractions:
+- Flow/Execution Plan abstraction ast, metrics
 - refactor enrichment_stats
-
-3) support_terminal_execution
-
-4) refactor_logging like matplotlib.
-
+- refactor_logging like matplotlib
 5) multiple_queries_grouping -  Support grouping edges with the same start end nodes, and represent them by either avg/median/max/min.
-
-6) update_readme:
-- Installation
-- Usage / Docs
-- Examples
-
-7) fix_zero_edge_bug - UI edge size when hovering .replace(0, 1)
-
-8) Support easier installations:
-- pypi
-- apt-get
-- brew
-
-9) supporting_new_parsers:
+6) fix_zero_edge_bug - UI edge size when hovering .replace(0, 1)
+8supporting_new_parsers:
 - mysql
 - sqlite
-
-14) optimization_insights:
-- [slow scan](https://pganalyze.com/docs/explain/insights/slow-scan).
-- [inefficient index](https://pganalyze.com/docs/explain/insights/inefficient-index).
-- [Hash batches](https://pganalyze.com/docs/explain/insights/hash-batches).
-- [Disk Sorts](https://pganalyze.com/docs/explain/insights/disk-sort).
-- [Lossy Bitmaps](https://pganalyze.com/docs/explain/insights/lossy-bitmaps).
-- [Stale stats](https://pganalyze.com/docs/explain/insights/stale-stats)- planner missed by a factor of X or more.
-- [I/O Heavy](https://pganalyze.com/docs/explain/insights/io-heavy).
-- Keep results of CTE small (keep big JOINs outside).
-- Unused indexes.
-- Nested loop should work only on small tables.
-- Merge join is good for two big tables (sort), we can use index to mitigate this.
-- Hash Join scan one table and build hash table (high memory), for big table it won’t be optimal.
-  If stuff getting pulled from heap we might need to tune shared_buffers (can check explain analyse)
+- presto
+- spark

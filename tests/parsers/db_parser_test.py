@@ -41,10 +41,12 @@ def test_align_source_target_ids():
     given = pd.DataFrame({
         'source': [10, 11, 13, 12],
         'target': [11, 12, 12, 14],
+        'operation_type': ['scan', 'scan', 'scan', 'scan']
     })
     actual = DBParser.align_source_target_ids(given)
     expected = pd.DataFrame({
         'source': [0, 1, 2, 3],
         'target': [1, 2, 4, 2],
+        'operation_type': ['scan', 'scan', 'scan', 'scan']
     })
     assert_frame_equal(actual, expected)
