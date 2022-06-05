@@ -5,7 +5,7 @@
 To install query-flow, run this command in your
 terminal:
 
-``` console
+```
 $ pip install query-flow
 ```
 
@@ -21,19 +21,19 @@ the [Github repo][].
 
 You can either clone the public repository:
 
-``` console
+```
 $ git clone git://github.com/eyaltrabelsi/query-flow
 ```
 
 Or download the [tarball][]:
 
-``` console
+```
 $ curl -OJL https://github.com/eyaltrabelsi/query-flow/tarball/master
 ```
 
 Once you have a copy of the source, you can install it with:
 
-``` console
+```
 $ pip install .
 ```
 

@@ -1,7 +1,6 @@
 import random
 
-from colour import Color
-from colour import RGB_TO_COLOR_NAMES
+from colour import RGB_TO_COLOR_NAMES, Color
 
 
 def optimize_color(color, by='luminance', value=0.75):
@@ -49,8 +48,7 @@ def sample_colors(n):
     2
     """
     if n <= 7:
-        colors = ['yellow', 'green', 'khaki',
-                  'red', 'purple', 'orange', 'silver']
+        colors = ['yellow', 'green', 'khaki', 'red', 'purple', 'orange', 'silver']
     else:
         colors = [color[0] for color in RGB_TO_COLOR_NAMES.values()]
         random.shuffle(colors)
@@ -59,4 +57,5 @@ def sample_colors(n):
 
 if __name__ == '__main__':
     import doctest
+
     doctest.testmod()

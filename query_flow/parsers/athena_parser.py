@@ -19,9 +19,8 @@ class AthenaParser(DBParser):
     query_prefix = None
     next_operator_indicator = 'children'
     last_fragment_id = None
-    supported_metrics = frozenset([
-        'nodeCpuTime', 'nodeCpuFraction', 'nodeOutputRows', 'nodeOutputDataSize'
-    ])
+    supported_metrics = frozenset(['nodeCpuTime', 'nodeCpuFraction', 'nodeOutputRows', 'nodeOutputDataSize'])
+    redundent_operation_names = frozenset(['Where', 'Filter'])  # TODO support union
     verbose_ops = {}
 
     description_dict = {
@@ -48,7 +47,7 @@ class AthenaParser(DBParser):
         'InnerJoin': '',
         'Aggregate': '',
         'Gather Merge': '',
-        'Sort': 'Sorts a record set based on the specified sort key.'
+        'Sort': 'Sorts a record set based on the specified sort key.',
     }
 
     def __init__(self, is_compact=False, execute_query=True):
@@ -70,9 +69,12 @@ class AthenaParser(DBParser):
 
     def from_query(self, query, con_str):
         with create_engine(con_str).connect() as con:
+            # SQLALCHEMY doesn't handle % as a regular SQL client so one need to add additional %
             explain_analyze_query = f"{self.query_prefix} {query.replace('%', '%%')}"
-            execution_plan = "\n".join([line[0]
-                                        for line in con.execute(explain_analyze_query).fetchall()])
+
+            # Grab the execution plan string in case its returned as a multiple rows
+            execution_plan = "\n".join([line[0] for line in con.execute(explain_analyze_query).fetchall()])
+
             return self.execution_plan_extractor(execution_plan)
 
     @property
@@ -89,8 +91,11 @@ class AthenaParser(DBParser):
     @DBParser.parse_filterable_node_decor
     def parse_scan(self):
         def parse_where(execution_node):
-            identifier = f"-{execution_node['identifier'].split('tableName=')[1].split(',')[0]}" if execution_node['identifier'] not in (
-                '[]', '') else ''
+            identifier = (
+                f"-{execution_node['identifier'].split('tableName=')[1].split(',')[0]}"
+                if execution_node['identifier'] not in ('[]', '')
+                else ''
+            )
             return {
                 'label': f"{execution_node.get('name')}{identifier}*",
                 'label_metadata': f"identifier: {execution_node['identifier']}\n details: {execution_node['details']}",
@@ -98,14 +103,21 @@ class AthenaParser(DBParser):
             }
 
         def parse_naive_scan(execution_node):
-            identifier = f"-{execution_node['identifier'].split('tableName=')[1].split(',')[0]}" if execution_node['identifier'] not in ('[]', '') else ''
+            identifier = (
+                f"-{execution_node['identifier'].split('tableName=')[1].split(',')[0]}"
+                if execution_node['identifier'] not in ('[]', '')
+                else ''
+            )
             res = {
                 'label': f"{execution_node.get('name')}{identifier}",
                 'label_metadata': f"identifier: {execution_node['identifier']}\n details: {execution_node['details']}",
-                'nodeOutputRows': execution_node['distributedNodeStats']['operatorInputRowsStats'][0]['nodeInputRows'] #TODO check
-                # TODO add metadata of partitions
             }
-
+            if "Filtered" in execution_node["details"] and "0.00" not in execution_node["details"]:
+                relevant_line = list(filter(lambda x: x.startswith("Input"), execution_node['details'].split("\n")))[0]
+                # TODO fix the rest of the columns
+                _, row_amount, row_meric_name, size, _, _ = relevant_line.split(" ")
+                res['nodeOutputRows'] = f"{row_amount} {row_meric_name}"
+                res['nodeOutputDataSize'] = size[1:-2]
             return res
 
         yield parse_where
@@ -115,28 +127,25 @@ class AthenaParser(DBParser):
     def parse_base(self, execution_node):
         res = {
             'label': self.node_type_extractor(execution_node),
-            'label_metadata': f"identifier: {execution_node['identifier']}\n details: {execution_node['details']}"
+            'label_metadata': f"identifier: {execution_node['identifier']}\n details: {execution_node['details']}",
         }
         return res
 
     @DBParser.parse_default_decor
     def parse_remote_source(self, execution_node):
-        res = {
-            'label': f'remote_source {execution_node.get("identifier")}',
-            'label_metadata': ''
-        }
+        res = {'label': f'remote_source {execution_node.get("identifier")}', 'label_metadata': ''}
         return res
 
     def add_supported_metrics(self, parsed_node, execution_node):
         for metric in self.supported_metrics:
             if 'distributedNodeStats' in execution_node and metric in execution_node.get('distributedNodeStats'):
-                normalized_key = metric.replace(' ', '_')
-                parsed_node[normalized_key] = execution_node.get('distributedNodeStats')[metric]
+                if metric not in parsed_node:
+                    parsed_node[metric] = execution_node.get('distributedNodeStats')[metric]
         return parsed_node
 
     @staticmethod
     def normalize_data_size(size_str):
-        scale_dict = {'B': 1.0 / 3**10, '.kB': 1.0 / 2**10, '.MB': 1.0, '.GB': 1.0 * 2**10, '.TB': 1.0 * 2**10}
+        scale_dict = {'B': 1.0 / 3 ** 10, '.kB': 1.0 / 2 ** 10, '.MB': 1.0, '.GB': 1.0 * 2 ** 10, '.TB': 1.0 * 2 ** 10}
         scale = ''.join(i for i in size_str if not i.isdigit())
         number = float(''.join(i for i in size_str if i.isdigit()))
 
@@ -155,12 +164,24 @@ class AthenaParser(DBParser):
         df['nodeOutputRows'] = df['nodeOutputRows'].map(lambda x: ''.join(i for i in x if i.isdigit()))
         df['nodeOutputDataSize'] = df['nodeOutputDataSize'].map(AthenaParser.normalize_data_size)
         df['nodeCpuTime'] = df['nodeCpuTime'].map(AthenaParser.normalize_cpu_time)
+
+        for i, row in df.iterrows():
+            relevant_ops = df.query(f"target=={row['source']} & query_hash=='{row['query_hash']}'")
+            if row.operation_type in self.redundent_operation_names:
+                # TODO check this and add test
+                df.loc[i, 'redundent_operation'] = sum(relevant_ops.actual_rows) == row.actual_rows
+
+            if any(op in row.label.split(' ') for op in self.label_replacement.keys()):
+                df.loc[i, 'label'] = self.label_replacement[row.label].join(relevant_ops.label)
+
         return df
 
 
 if __name__ == '__main__':
     import uuid
+
     from query_flow.vizualizers import query_vizualizer
+
     query = """
                 select publisher
                 from live_funnel.parquet_internal_crm_for_bi
@@ -168,11 +189,11 @@ if __name__ == '__main__':
                 limit 10    
             """
     import os
+
     conn_str = os.environ["athena"] + "/" + str(uuid.uuid4())
     parser = AthenaParser(execute_query=True)
     execution_plan = parser.from_query(query, conn_str)
     flow_df = parser.parse([execution_plan])
     query_renderer = query_vizualizer.QueryVizualizer(parser)
     query_renderer.vizualize(flow_df, title="actual", metrics=['nodeOutputRows'], open_=True)
-    query_renderer.vizualize(flow_df, title="actual", metrics=['nodeCpuTime'], open_=True)
-
+    # query_renderer.vizualize(flow_df, title="actual", metrics=['nodeCpuTime'], open_=True)

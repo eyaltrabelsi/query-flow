@@ -1,13 +1,14 @@
 from operator import itemgetter
 
-
 try:
+    from query_flow.query_flow.utils.misc import calc_precentage, calc_ratio
+
     from .db_parser import DBParser
-    from ..misc import calc_precentage, calc_ratio
 except ImportError:
     # Support running doctests not as a module
     from db_parser import DBParser  # type: ignore
-    from query_flow.misc import calc_precentage, calc_ratio   # type: ignore
+
+    from query_flow.misc import calc_precentage, calc_ratio  # type: ignore
 
 __all__ = ['PostgresParser']
 
@@ -18,13 +19,29 @@ class PostgresParser(DBParser):
     query_prefix = None
     next_operator_indicator = 'Plans'
 
-    supported_metrics = frozenset([
-        'Actual Rows', 'Actual Total Time', 'Plan Rows', 'Plan Width', 'Total Cost',
-        'Actual Startup Time', 'Actual Loops', 'Shared Read Blocks',
-        'Shared Hit Blocks', 'Shared Dirtied Blocks', 'Shared Written Blocks',
-        'Local Hit Blocks', 'Local Dirtied Blocks', 'Local Read Blocks',
-        'Local Written Blocks', 'Temp Written Blocks', 'Temp Read Blocks',
-    ])
+    supported_metrics = frozenset(
+        [
+            'Actual Rows',
+            'Actual Total Time',
+            'Plan Rows',
+            'Plan Width',
+            'Total Cost',
+            'Actual Startup Time',
+            'Actual Loops',
+            'Shared Read Blocks',
+            'Shared Hit Blocks',
+            'Shared Dirtied Blocks',
+            'Shared Written Blocks',
+            'Local Hit Blocks',
+            'Local Dirtied Blocks',
+            'Local Read Blocks',
+            'Local Written Blocks',
+            'Temp Written Blocks',
+            'Temp Read Blocks',
+        ]
+    )
+    redundent_operation_names = frozenset(['Unique', 'Where', 'Having'])
+
     verbose_ops = {}
 
     description_dict = {
@@ -53,7 +70,7 @@ class PostgresParser(DBParser):
         'WindowAgg': 'Calculate window function according to the OVER statements.',
         'Result': 'A Relation primitive',
         'SetOp': 'Combines two datasets for set operations like UNION, INTERSECT, and EXCEPT.',
-        'Subquery Scan': 'A Subquery Scan is for scanning the output of a sub-query in the range table.'
+        'Subquery Scan': 'A Subquery Scan is for scanning the output of a sub-query in the range table.',
     }
 
     def __init__(self, is_compact=False, execute_query=True):
@@ -106,15 +123,12 @@ class PostgresParser(DBParser):
             'Unique': self.parse_unique,
             'Result': self.parse_result,
             'WindowAgg': self.parse_window,
-            'SetOp': self.parse_set_op
+            'SetOp': self.parse_set_op,
         }
 
     @DBParser.parse_default_decor
     def parse_base(self, execution_node):
-        return {
-            'label': self.node_type_extractor(execution_node),
-            'label_metadata': ''
-        }
+        return {'label': self.node_type_extractor(execution_node), 'label_metadata': ''}
 
     @DBParser.parse_default_decor
     def parse_limit(self, execution_node):
@@ -139,9 +153,9 @@ class PostgresParser(DBParser):
         return {
             'label': 'SORT',
             'label_metadata': f"Sort Space Type: {execution_node['Sort Space Type']}\n"
-                              f"Sort Space Used: {execution_node['Sort Space Used']}\n"
-                              f"Sort Method: {execution_node['Sort Method']}\n"
-                              f"Sort Key: {itemgetter('Sort Key')(execution_node)}\n",
+            f"Sort Space Used: {execution_node['Sort Space Used']}\n"
+            f"Sort Method: {execution_node['Sort Method']}\n"
+            f"Sort Key: {itemgetter('Sort Key')(execution_node)}\n",
         }
 
     @DBParser.parse_default_decor
@@ -154,7 +168,9 @@ class PostgresParser(DBParser):
 
         return {
             'label': 'UNION ALL',
-            'label_metadata': f"Sort Key: {itemgetter('Sort Key')(execution_node)}" if 'Sort Key' in execution_node else '',
+            'label_metadata': f"Sort Key: {itemgetter('Sort Key')(execution_node)}"
+            if 'Sort Key' in execution_node
+            else '',
         }
 
     @DBParser.parse_default_decor
@@ -178,8 +194,7 @@ class PostgresParser(DBParser):
         """
         return {
             'label': 'SetOp',
-            'label_metadata': f'Strategy:{execution_node["Strategy"]}\n'
-                              + f'Command:{execution_node["Command"]}\n'
+            'label_metadata': f'Strategy:{execution_node["Strategy"]}\n' + f'Command:{execution_node["Command"]}\n',
         }
 
     @DBParser.parse_default_decor
@@ -213,10 +228,7 @@ class PostgresParser(DBParser):
         >>> p.parse_gather(1000, {"Node Type": "Gather", "Workers Launched": 2, "Workers Planned": 2})
         ([ParsedNode(source=9999, target=1000, operation_type='Gather', label='Gather', label_metadata='Workers Planned:2\\nWorkers Launched:2\\n')], 9999)
         """
-        res = {
-            'label': 'Gather',
-            'label_metadata': f'Workers Planned:{execution_node["Workers Planned"]}\n'
-        }
+        res = {'label': 'Gather', 'label_metadata': f'Workers Planned:{execution_node["Workers Planned"]}\n'}
 
         for optional_col in ['Workers Launched', 'Single Copy']:
             if optional_col in execution_node:
@@ -231,12 +243,15 @@ class PostgresParser(DBParser):
         >>> p.parse_hash(1000, {"Node Type": "Hash", "Parent Relationship": "Inner"})
         ([ParsedNode(source=9999, target=1000, operation_type='Hash', label='HASH', label_metadata='')], 9999)
         """
-        res = {
-            'label': 'HASH',
-            'label_metadata': ''
-        }
+        res = {'label': 'HASH', 'label_metadata': ''}
 
-        for optional_col in ['Hash Batches', 'Hash Buckets', 'Original Hash Batches', 'Original Hash Buckets', 'Peak Memory Usage']:
+        for optional_col in [
+            'Hash Batches',
+            'Hash Buckets',
+            'Original Hash Batches',
+            'Original Hash Buckets',
+            'Peak Memory Usage',
+        ]:
             if optional_col in execution_node:
                 res['label_metadata'] += f'{optional_col}:{execution_node[optional_col]}\n'
 
@@ -253,10 +268,7 @@ class PostgresParser(DBParser):
         >>> p.parse_join(1000, {"Node Type": "Hash Join",  "Join Type": "Inner", "Join Filter": "(crew.person_id = people.person_id)"})
         ([ParsedNode(source=9998, target=1000, operation_type='Hash Join', label='JOIN', label_metadata='Inner Join with (crew.person_id = people.person_id)')], 9998)
         """
-        cond_key = [
-            key for key in execution_node.keys(
-            ) if 'Cond' in key or 'Join Filter' == key
-        ]
+        cond_key = [key for key in execution_node.keys() if 'Cond' in key or 'Join Filter' == key]
         metadata = f"{execution_node['Join Type']} Join"
         if cond_key:
             metadata += f' with {itemgetter(cond_key[0])(execution_node)}'
@@ -282,16 +294,17 @@ class PostgresParser(DBParser):
 
         def parse_naive_scan(execution_node):
             res = {
-                'label': execution_node.get('Alias', execution_node.get('Index Name', execution_node.get('Relation Name', ''))).title(),
-                'label_metadata': ''
+                'label': execution_node.get(
+                    'Alias', execution_node.get('Index Name', execution_node.get('Relation Name', ''))
+                ).title(),
+                'label_metadata': '',
             }
 
             if 'Function Call' in execution_node:
                 res['label_metadata'] += f'Function Call: {execution_node["Function Call"]}'
 
             if 'Actual Rows' in execution_node:
-                res['actual_rows'] = execution_node['Actual Rows'] + \
-                    execution_node.get('Rows Removed by Filter', 0)
+                res['actual_rows'] = execution_node['Actual Rows'] + execution_node.get('Rows Removed by Filter', 0)
             return res
 
         yield parse_where
@@ -311,8 +324,7 @@ class PostgresParser(DBParser):
                 'label_metadata': '',
             }
             if 'Actual Rows' in execution_node:
-                res['actual_rows'] = execution_node['Actual Rows'] + \
-                    execution_node.get('Rows Removed by Filter', 0)
+                res['actual_rows'] = execution_node['Actual Rows'] + execution_node.get('Rows Removed by Filter', 0)
             return res
 
         def parse_where_sub_query(execution_node):
@@ -344,15 +356,14 @@ class PostgresParser(DBParser):
             res = {
                 'label': 'AGG',
                 'label_metadata': f"Output: {itemgetter('Output')(execution_node)}\n"
-                                  + f"Partial Mode: {execution_node['Partial Mode']}\n"
-                                  + f"Strategy: {execution_node['Strategy']}\n"
+                + f"Partial Mode: {execution_node['Partial Mode']}\n"
+                + f"Strategy: {execution_node['Strategy']}\n",
             }
 
             if 'Group Key' in execution_node:
                 res['label_metadata'] += f"Group key: {itemgetter('Group Key')(execution_node)}"
             if 'Actual Rows' in execution_node:
-                res['actual_rows'] = execution_node['Actual Rows'] + \
-                    execution_node.get('Rows Removed by Filter', 0)
+                res['actual_rows'] = execution_node['Actual Rows'] + execution_node.get('Rows Removed by Filter', 0)
             return res
 
         yield parse_having
@@ -370,34 +381,39 @@ class PostgresParser(DBParser):
         for i, row in df.iterrows():
             relevant_ops = df.query(f"target=={row['source']} & query_hash=='{row['query_hash']}'")
             if 'actual_startup_time' in df.columns:
-                df.loc[i, 'actual_duration'] = row.actual_total_time if relevant_ops.empty else row.actual_total_time - \
-                    max(relevant_ops.actual_total_time)
-                df.loc[
-                    i, 'actual_startup_duration'] = row.actual_startup_time if relevant_ops.empty else row.actual_startup_time - \
-                    max(
-                    relevant_ops.total_cost)
+                df.loc[i, 'actual_duration'] = (
+                    row.actual_total_time
+                    if relevant_ops.empty
+                    else row.actual_total_time - max(relevant_ops.actual_total_time)
+                )
+                df.loc[i, 'actual_startup_duration'] = (
+                    row.actual_startup_time
+                    if relevant_ops.empty
+                    else row.actual_startup_time - max(relevant_ops.total_cost)
+                )
 
-            df.loc[i, 'estimated_cost'] = row.total_cost if relevant_ops.empty else row.total_cost - \
-                max(relevant_ops.total_cost)
+            df.loc[i, 'estimated_cost'] = (
+                row.total_cost if relevant_ops.empty else row.total_cost - max(relevant_ops.total_cost)
+            )
 
-            if row.operation_type in ['Unique', 'Where', 'Having'] and 'actual_startup_time' in df.columns:
-                df.loc[i, 'redundent_operation'] = False
+            if row.operation_type in self.redundent_operation_names and 'actual_startup_time' in df.columns:
+                # TODO check this and add test
+                df.loc[i, 'redundent_operation'] = sum(relevant_ops.actual_rows) == row.actual_rows
 
             if any(op in row.label.split(' ') for op in self.label_replacement.keys()):
                 df.loc[i, 'label'] = self.label_replacement[row.label].join(
                     relevant_ops.label,
                 )
 
-        df['estimated_cost_pct'] = calc_precentage(
-            df['estimated_cost'], df['total_cost'])
+        df['estimated_cost_pct'] = calc_precentage(df['estimated_cost'], df['total_cost'])
         if 'actual_startup_time' in df.columns:
-            df['actual_duration_pct'] = calc_precentage(
-                df['actual_duration'], df['actual_total_time'])
-            df['actual_plan_rows_ratio'] = calc_ratio(
-                df, 'actual_rows', 'plan_rows')
+            df['actual_duration_pct'] = calc_precentage(df['actual_duration'], df['actual_total_time'])
+            df['actual_plan_rows_ratio'] = calc_ratio(df, 'actual_rows', 'plan_rows')
 
-        df['label_metadata'] = df.operation_type.map(
-            lambda s: f"\nDescription: {self.description_dict.get(s,'')}" if s else '') + df.label_metadata
+        df['label_metadata'] = (
+            df.operation_type.map(lambda s: f"\nDescription: {self.description_dict.get(s,'')}" if s else '')
+            + df.label_metadata
+        )
         return df
 
 
