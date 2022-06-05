@@ -11,9 +11,9 @@ QueryFlow, is a query visualization tool that provides insights into common prob
 QueryFlow visualizes the query execution using the Sankey diagram, a technique that allows one to illustrate complex processes, with a focus on a single aspect or resource that you want to highlight.
 This allow to tackle the following problems:
 
-* ![Identifying missing records.](https://github.com/eyaltrabelsi/query-flow/blob/master/examples/Identifying%20the%20operation%20that%20caused%20the%20return%20of%20zero%20records%20.ipynb)
-* ![Identifying Ineffective operations.](https://github.com/eyaltrabelsi/query-flow/blob/master/examples/Identifying%20Ineffective%20operations.ipynb)
-* ![Identifying duplications in a query.](https://github.com/eyaltrabelsi/query-flow/blob/master/examples/Identifying%20duplications.ipynb)
+* [Identifying missing records.](https://github.com/eyaltrabelsi/query-flow/blob/master/examples/Identifying%20the%20operation%20that%20caused%20the%20return%20of%20zero%20records%20.ipynb)
+* [Identifying Ineffective operations.](https://github.com/eyaltrabelsi/query-flow/blob/master/examples/Identifying%20Ineffective%20operations.ipynb)
+* [Identifying duplications in a query.](https://github.com/eyaltrabelsi/query-flow/blob/master/examples/Identifying%20duplications.ipynb)
 * Comparing optimizer planned metrics to actual metrics.
 * Identifying performance bottlenecks in a single query.
 * Identifying performance bottlenecks in multiple queries.
@@ -33,7 +33,7 @@ The best way to install query-flow is:
 ```
 $ pip install query-flow
 ```
-In case you want to use another way go to the ![installation page.](https://eyaltrabelsi.github.io/query-flow/installation/)
+In case you want to use another way go to the [installation page.](https://eyaltrabelsi.github.io/query-flow/installation/)
 
 
 [comment]: <> (## Publications #)
