@@ -1,12 +1,14 @@
-2) Athena parser: test support redundent_operation
-3) better repository: readthedocs
-4) better repository: README
-5) better repository: pypi
-6) bug: divide by 2 when there is where
-7) better abstraction: metrics
-8) Jupyter examples for multiple query and multiple metric
-9) Athena parser: add metadata of partitions
-10) Refactor to introduce new abstractions:
+3) make sure its safe
+4) make issues according to relevance
+5) Athena parser: test support redundent_operation
+6) better repository: readthedocs
+7) better repository: README
+8) better repository: pypi
+9) bug: divide by 2 when there is where
+10) better abstraction: metrics
+11) Jupyter examples for multiple query and multiple metric
+12) Athena parser: add metadata of partitions
+13) Refactor to introduce new abstractions:
 - Flow/Execution Plan abstraction ast
 - refactor enrichment_stats
 10) better repository: lean installation per database

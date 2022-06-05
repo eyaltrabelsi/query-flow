@@ -5,11 +5,11 @@ import pandas as pd
 from plotly.offline import iplot, plot
 
 try:
-    from query_flow.query_flow.utils.coloring_utils import color_range, sample_colors
+    from query_flow.utils.coloring_utils import color_range, sample_colors
 except ImportError:
 
     # Support running doctests not as a module
-    from query_flow.query_flow.utils.coloring_utils import color_range, sample_colors  # type: ignore
+    from query_flow.utils.coloring_utils import color_range, sample_colors  # type: ignore
 
 __all__ = ['QueryVizualizer']
 

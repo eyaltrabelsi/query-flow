@@ -1,7 +1,7 @@
 from operator import itemgetter
 
 try:
-    from query_flow.query_flow.utils.misc import calc_precentage, calc_ratio
+    from query_flow.utils.misc import calc_precentage, calc_ratio
 
     from .db_parser import DBParser
 except ImportError:
