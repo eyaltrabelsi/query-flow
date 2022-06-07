@@ -369,7 +369,6 @@ class PostgresParser(DBParser):
         yield parse_having
         yield parse_naive_aggregate
 
-    # TODO
     def enrich_stats(self, df):
         df['estimated_cost'] = df['total_cost']
         df['redundent_operation'] = False
@@ -397,7 +396,6 @@ class PostgresParser(DBParser):
             )
 
             if row.operation_type in self.redundent_operation_names and 'actual_startup_time' in df.columns:
-                # TODO check this and add test
                 df.loc[i, 'redundent_operation'] = sum(relevant_ops.actual_rows) == row.actual_rows
 
             if any(op in row.label.split(' ') for op in self.label_replacement.keys()):

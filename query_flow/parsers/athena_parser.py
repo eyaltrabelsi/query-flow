@@ -20,7 +20,7 @@ class AthenaParser(DBParser):
     next_operator_indicator = 'children'
     last_fragment_id = None
     supported_metrics = frozenset(['nodeCpuTime', 'nodeCpuFraction', 'nodeOutputRows', 'nodeOutputDataSize'])
-    redundent_operation_names = frozenset(['Where', 'Filter'])  # TODO support union
+    redundent_operation_names = frozenset(['Where', 'Filter'])
     verbose_ops = {}
 
     description_dict = {
@@ -168,7 +168,6 @@ class AthenaParser(DBParser):
         for i, row in df.iterrows():
             relevant_ops = df.query(f"target=={row['source']} & query_hash=='{row['query_hash']}'")
             if row.operation_type in self.redundent_operation_names:
-                # TODO check this and add test
                 df.loc[i, 'redundent_operation'] = sum(relevant_ops.actual_rows) == row.actual_rows
 
             if any(op in row.label.split(' ') for op in self.label_replacement.keys()):
@@ -178,22 +177,6 @@ class AthenaParser(DBParser):
 
 
 if __name__ == '__main__':
-    import uuid
+    import doctest
 
-    from query_flow.vizualizers import query_vizualizer
-
-    query = """
-                select publisher
-                from live_funnel.parquet_internal_crm_for_bi
-                where publisher like 'p%'
-                limit 10    
-            """
-    import os
-
-    conn_str = os.environ["athena"] + "/" + str(uuid.uuid4())
-    parser = AthenaParser(execute_query=True)
-    execution_plan = parser.from_query(query, conn_str)
-    flow_df = parser.parse([execution_plan])
-    query_renderer = query_vizualizer.QueryVizualizer(parser)
-    query_renderer.vizualize(flow_df, title="actual", metrics=['nodeOutputRows'], open_=True)
-    # query_renderer.vizualize(flow_df, title="actual", metrics=['nodeCpuTime'], open_=True)
+    doctest.testmod()

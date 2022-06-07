@@ -6,10 +6,12 @@ from plotly.offline import iplot, plot
 
 try:
     from query_flow.utils.coloring_utils import color_range, sample_colors
+    from query_flow.utils.misc import listify
 except ImportError:
 
     # Support running doctests not as a module
     from query_flow.utils.coloring_utils import color_range, sample_colors  # type: ignore
+    from query_flow.utils.misc import listify
 
 __all__ = ['QueryVizualizer']
 
@@ -27,7 +29,7 @@ class QueryVizualizer:
             'redundent_operation',
         ]
     )
-    # TODO remove from here and change abstraction
+
     supported_metrics = {
         'actual_rows': ' Rows',
         'nodeOutputRows': ' Rows',
@@ -54,7 +56,7 @@ class QueryVizualizer:
         'Limit': 'khaki',
         'Nested Loop': 'mediumseagreen',
         'Where': 'deepskyblue',
-    }  # TODO remove it
+    }
     special_cases_link_colors = {'empty': 'red', 'redundant': 'coral'}
 
     def __init__(self, parser, is_colored_nodes=False, node_colors=None):
@@ -100,7 +102,6 @@ class QueryVizualizer:
 
     def vizualize(self, dfs, metrics, title, open_=True):
         metrics = metrics or self.default_metrics.keys()
-        # TODO change metric from UI
         assert all(
             metric in self.supported_metrics.keys() for metric in metrics
         ), f'The only supported metrics are {self.supported_metrics}'
@@ -162,7 +163,7 @@ class QueryVizualizer:
                 dict(data=[data_trace], layout=layout),
                 validate=False,
                 filename=f"{title}-{','.join(metrics)}.html",
-            )  # todo refactor
+            )
 
     def _prepare_dfs_for_sankey(self, flow_dfs, metrics):
         if isinstance(flow_dfs, collections.Sequence):
