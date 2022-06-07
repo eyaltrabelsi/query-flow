@@ -1,7 +1,7 @@
 [tool]
 [tool.poetry]
 name = "query_flow"
-version = "0.1.1"
+version = "0.1.0"
 homepage = "https://github.com/eyaltrabelsi/query-flow"
 description = "A library for visualizing your Queries as Sankey-diagrams.."
 authors = ["Eyal Trabelsi <eyaltrabelsi@gmail.com>"]
@@ -45,7 +45,7 @@ twine  = { version = "^3.3.0", optional = true}
 mkdocs-autorefs = {version = "^0.2.1", optional = true}
 pre-commit = {version = "^2.12.0", optional = true}
 toml = {version = "^0.10.2", optional = true}
-bump2version = {version = "^1.0.0", optional = true}
+bump2version = {version = "^1.0.1", optional = true}
 
 [tool.poetry.extras]
 test = [
