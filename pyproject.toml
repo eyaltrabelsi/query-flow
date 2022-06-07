@@ -1,7 +1,7 @@
 [tool]
 [tool.poetry]
 name = "query_flow"
-version = "0.1.0"
+version = "0.1.1"
 homepage = "https://github.com/eyaltrabelsi/query-flow"
 description = "A library for visualizing your Queries as Sankey-diagrams.."
 authors = ["Eyal Trabelsi <eyaltrabelsi@gmail.com>"]
